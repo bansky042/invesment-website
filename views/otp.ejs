@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <style>
+        /* Add your styles here */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Enter OTP</h2>
+        <form id="otpForm">
+            <input type="hidden" name="email" value="<%= email %>" />
+            <input type="text" name="otp" placeholder="Enter OTP" required />
+            <button type="submit">Verify</button>
+          </form>
+          
+          
+          
+    </div>
+</body>
+
+<script>
+    document.getElementById("otpForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const response = await fetch("/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(formData)),
+         });
+        if (response.ok) {
+            // Redirect to forgotpassword page on success
+            window.location.href = "/forgotpassword";
+        } else {
+            // Handle error (e.g., show an error message)
+            const errorMessage = await response.text();
+            alert(errorMessage);
+        }
+    });
+     
+  
+  </script>
+  
+</html>

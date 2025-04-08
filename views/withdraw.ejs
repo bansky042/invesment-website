@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Withdraw Funds</title>
+  <link rel="stylesheet" href="/css/style.css"> <!-- your CSS -->
+
+
+  <style>
+    body {
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+    background-size: cover; /* Ensures the background covers the entire page */
+    height: auto; /* Ensures the body takes the full height of the viewport */
+    background-repeat: no-repeat;
+    margin: 0; /* Remove default margin */
+    padding: 50px 0; /* Remove default padding */
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.withdraw-container {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  width: 400px;
+}
+
+.withdraw-container h2 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 20px;
+}
+
+.withdraw-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.withdraw-container label {
+  margin: 10px 0 5px;
+  color: #34495e;
+  font-size: 14px;
+}
+
+.withdraw-container input,
+.withdraw-container select {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.withdraw-container input:focus,
+.withdraw-container select:focus {
+  border-color: #3498db;
+}
+
+.withdraw-container button {
+  margin-top: 20px;
+  padding: 12px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 16px;
+  transition:  0.3s;
+}
+
+.withdraw-container button:hover {
+  background-color: #125684;
+}
+
+</style>
+</head>
+<body>
+ 
+
+  <div class="container">
+    <h1>Withdrawal Request</h1>
+
+    <!-- Show message -->
+    <% if (message) { %>
+      <p class="message"><%= message %></p>
+    <% } %>
+      <div class="withdraw-container">
+    <div class="wallet-info">
+      <p><strong>Wallet Address:</strong> <%= user.wallet_address %></p>
+      <p><strong>Current Balance:</strong> $<%= user.profit_balance %></p>
+    </div>
+
+    <form action="/withdraw" method="POST">
+      <label for="accountNumber">Account Number</label>
+      <input type="text" id="accountNumber" name="accountNumber" required>
+
+      <label for="bankName">Select Bank/Fintech</label>
+      <select id="bankName" name="bankName" required>
+        <option value="">Select Bank</option>
+        <option value="Access Bank">Access Bank</option>
+        <option value="GTBank">GTBank</option>
+        <option value="Kuda">Kuda</option>
+        <option value="Opay">Opay</option>
+        <option value="Moniepoint">Moniepoint</option>
+        <!-- Add more -->
+      </select>
+
+      <label for="amount">Amount (₦)</label>
+      <input type="number" id="amount" name="amount" step="0.01" required>
+
+      <button type="submit">Submit Withdrawal</button>
+    </form>
+  </div>
+   
+  </div>
+</body>
+</html>

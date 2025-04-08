@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Transaction History</title>
+  <style>
+    body {
+      background-color: #f2f6fc;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    section {
+      margin-top: 30px;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      color: #444;
+    }
+
+    .filter-select {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #e8efff;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .status-approved { color: green; font-weight: bold; }
+    .status-pending { color: orange; font-weight: bold; }
+    .status-rejected { color: red; font-weight: bold; }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 30px;
+      text-decoration: none;
+      color: #4a90e2;
+      font-weight: bold;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .summary {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      gap: 10px;
+    }
+
+    .btn {
+      background-color: #4a90e2;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background-color: #3a78c2;
+    }
+
+    .pagination {
+      margin-top: 10px;
+    }
+
+    .pagination button {
+      margin: 0 4px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    .pagination button.active {
+      background-color: #4a90e2;
+      color: white;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 20px 10px;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      th, td {
+        padding: 10px 5px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Transaction History</h1>
+
+    <!-- Deposit History -->
+    <!-- Deposit History -->
+<section class="history-section">
+  <h2>Deposit History</h2>
+  <div class="controls">
+    <select class="filter-select" id="depositFilter" onchange="filterRows('deposit')">
+      <option value="all">All</option>
+      <option value="approved">Approved</option>
+      <option value="pending">Pending</option>
+      <option value="rejected">Rejected</option>
+    </select>
+    <button class="btn" onclick="exportTableAsPDF('depositTable', 'Deposits')">Export PDF</button>  </div>
+  <div class="table-wrapper">
+    <table id="depositTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="depositBody">
+        <% if (deposits.length > 0) { %>
+          <% deposits.forEach(d => { %>
+            <tr data-status="<%= d.status.trim().toLowerCase() %>">
+              <td><%= new Date(d.created_at).toLocaleString() %></td>
+              <td class="amount">$<%= parseFloat(d.amount).toFixed(2) %></td>
+              <td class="status-<%= d.status.trim().toLowerCase() %>">
+                <% if (d.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
+                <% } else if (d.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
+                <% } else { %> ❌ Rejected <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="3">No deposit history found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <div class="summary" id="depositTotal"></div>
+  <div class="pagination" id="depositPagination"></div>
+</section>
+
+<!-- Withdrawal History -->
+<section class="history-section2">
+  <h2>Withdrawal History</h2>
+  <div class="controls">
+    <select class="filter-select" id="withdrawalFilter" onchange="filterRows('withdrawal')">
+      <option value="all">All</option>
+      <option value="approved">Approved</option>
+      <option value="pending">Pending</option>
+      <option value="rejected">Rejected</option>
+    </select>
+    <button class="btn" onclick="exportTableAsPDF('withdrawalTable', 'Withdrawals')">Export PDF</button> </div>
+  <div class="table-wrapper">
+    <table id="withdrawalTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Amount</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="withdrawalBody">
+        <% if (withdrawals.length > 0) { %>
+          <% withdrawals.forEach(w => { %>
+            <tr data-status="<%= w.status.trim().toLowerCase() %>">
+              <td><%= new Date(w.created_at).toLocaleString() %></td>
+              <td class="amount">$<%= parseFloat(w.amount).toFixed(2) %></td>
+              <td class="status-<%= w.status.trim().toLowerCase() %>">
+                <% if (w.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
+                <% } else if (w.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
+                <% } else { %> ❌ Rejected <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        <% } else { %>
+          <tr><td colspan="3">No withdrawal history found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <div class="summary" id="withdrawalTotal"></div>
+  <div class="pagination" id="withdrawalPagination"></div>
+</section>
+
+
+    <a href="/dashboard" class="back-link">← Back to Dashboard</a>
+  </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script>
+    const itemsPerPage = 5;
+
+    function resetVisibility(tableId) {
+      const table = document.getElementById(tableId);
+      const rows = table.querySelectorAll('tbody tr');
+      rows.forEach(row => row.style.display = '');
+    }
+
+    function paginate(tableId, paginationId) {
+      const table = document.getElementById(tableId);
+      const allRows = [...table.querySelectorAll('tbody tr')];
+      const pagination = document.getElementById(paginationId);
+
+      const visibleRows = allRows.filter(row => row.style.display !== 'none');
+      const totalPages = Math.ceil(visibleRows.length / itemsPerPage);
+
+      function showPage(page) {
+        visibleRows.forEach((row, index) => {
+          row.style.display = (index >= (page - 1) * itemsPerPage && index < page * itemsPerPage) ? '' : 'none';
+        });
+
+        pagination.innerHTML = '';
+        for (let i = 1; i <= totalPages; i++) {
+          const btn = document.createElement('button');
+          btn.textContent = i;
+          btn.classList.toggle('active', i === page);
+          btn.onclick = () => showPage(i);
+          pagination.appendChild(btn);
+        }
+      }
+
+      showPage(1);
+    }
+
+    function calculateTotal(tableId, totalId) {
+      const table = document.getElementById(tableId);
+      const amounts = [...table.querySelectorAll('tbody .amount')]
+        .filter(td => td.closest('tr').style.display !== 'none');
+
+      let sum = 0;
+      amounts.forEach(td => {
+        const value = parseFloat(td.textContent.replace(/[^0-9.]/g, ''));
+        if (!isNaN(value)) sum += value;
+      });
+
+      document.getElementById(totalId).textContent = `Total: $${sum.toFixed(2)}`;
+    }
+
+    function filterRows(type) {
+      const filter = document.getElementById(type + 'Filter').value;
+      const table = document.getElementById(type + 'Table');
+      const rows = table.querySelectorAll('tbody tr');
+
+      rows.forEach(row => {
+        const status = row.getAttribute('data-status');
+        row.style.display = (filter === 'all' || status === filter) ? '' : 'none';
+      });
+
+      calculateTotal(type + 'Table', type + 'Total');
+      paginate(type + 'Table', type + 'Pagination');
+    }
+
+
+
+    
+  const { jsPDF } = window.jspdf;
+
+  function exportTableAsPDF(tableId, filename) {
+    const doc = new jsPDF();
+    const table = document.getElementById(tableId);
+    const rows = table.querySelectorAll('tr');
+    
+    // Set up basic font and margins
+    doc.setFont('helvetica', 'normal');
+    const margin = 20;
+    let y = margin;
+    
+    // Add Header
+    doc.setFontSize(16);
+    doc.text('Transaction History - ' + filename, margin, y);
+    y += 12;
+    
+    // Add date or other info in the header
+    const date = new Date().toLocaleString();
+    doc.setFontSize(10);
+    doc.text('Date Generated: ' + date, margin, y);
+    y += 12;
+    
+    // Draw table headers with background
+    const headers = ['Date', 'Amount', 'Status'];
+    const columnWidth = [50, 30, 40]; // width for each column
+    
+    // Header Background Color
+    doc.setFillColor(62, 103, 168); // Dark blue color for header
+    doc.rect(margin, y, columnWidth[0], 10, 'F');
+    doc.rect(margin + columnWidth[0], y, columnWidth[1], 10, 'F');
+    doc.rect(margin + columnWidth[0] + columnWidth[1], y, columnWidth[2], 10, 'F');
+    
+    // Set font for headers
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(255, 255, 255); // White text for headers
+    doc.text(headers[0], margin + 5, y + 7);
+    doc.text(headers[1], margin + columnWidth[0] + 5, y + 7);
+    doc.text(headers[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 7);
+    y += 12;
+
+    // Table Content
+    doc.setFont('helvetica', 'normal');
+    let rowHeight = 10;
+    let rowIndex = 0;
+
+    rows.forEach((row, index) => {
+      if (index === 0) return; // Skip the header row
+
+      const cells = row.querySelectorAll('th, td');
+      const rowData = [...cells].map(cell => cell.innerText);
+      const status = rowData[2].toLowerCase().trim();
+
+      // Determine row color based on status
+      const rowColor = status === 'approved' ? [42, 139, 51] : (status === 'pending' ? [255, 153, 51] : [213, 50, 46]); // Green, Orange, Red
+
+      // Add Row Background Color
+      doc.setFillColor(...rowColor);
+      doc.rect(margin, y, columnWidth[0], rowHeight, 'F');
+      doc.rect(margin + columnWidth[0], y, columnWidth[1], rowHeight, 'F');
+      doc.rect(margin + columnWidth[0] + columnWidth[1], y, columnWidth[2], rowHeight, 'F');
+
+      // Add Row Content
+      doc.setTextColor(0, 0, 0); // Black text
+      doc.text(rowData[0], margin + 5, y + 6);
+      doc.text(rowData[1], margin + columnWidth[0] + 5, y + 6);
+      doc.text(rowData[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 6);
+
+      y += rowHeight;
+
+      // Add a new page if the content goes beyond a certain point
+      if (y > 250) {
+        doc.addPage();
+        y = margin;
+      }
+    });
+
+    // Footer: Add Page Number
+    const pageCount = doc.internal.getNumberOfPages();
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150); // Grey color for footer text
+    doc.text('Page ' + pageCount, margin, y);
+
+    // Save the generated PDF
+    doc.save(`${filename}.pdf`);
+  }
+
+
+    // Run on page load
+    window.onload = () => {
+      ['deposit', 'withdrawal'].forEach(type => {
+        resetVisibility(type + 'Table');
+        calculateTotal(type + 'Table', type + 'Total');
+        paginate(type + 'Table', type + 'Pagination');
+      });
+    };
+  </script>
+</body>
+</html>

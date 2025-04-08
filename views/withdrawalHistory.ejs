@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Withdrawal History</title>
+  <style>
+    body {
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+    background-size: cover; /* Ensures the background covers the entire page */
+    height: auto; /* Ensures the body takes the full height of the viewport */
+    background-repeat: no-repeat;
+    margin: 0; /* Remove default margin */
+    padding: 50px 0; /* Remove default padding */
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container {
+  width: 90%;
+  max-width: 800px;
+  margin: 30px auto;
+  background-color: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+thead {
+  background-color: #4caf50;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+a {
+  display: inline-block;
+  margin-top: 20px;
+  color: #4caf50;
+  text-decoration: none;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Your Withdrawal History</h1>
+    <% if (withdrawals.length === 0) { %>
+      <p>No withdrawals made yet.</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Account Number</th>
+            <th>Bank</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% withdrawals.forEach(withdrawal => { %>
+            <tr>
+              <td><%= new Date(withdrawal.created_at).toLocaleString() %></td>
+              <td><%= withdrawal.account_number %></td>
+              <td><%= withdrawal.bank_name %></td>
+              <td>₦<%= withdrawal.amount %></td>
+              <td><%= withdrawal.status %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+    <a href="/dashboard">← Back to Dashboard</a>
+  </div>
+</body>
+</html>

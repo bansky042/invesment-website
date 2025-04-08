@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deposit Admin</title>
+  <style>
+    body {
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+    background-size: cover; /* Ensures the background covers the entire page */
+    height: auto; /* Ensures the body takes the full height of the viewport */
+    background-repeat: no-repeat;
+    margin: 0; /* Remove default margin */
+    padding: 50px 0; /* Remove default padding */
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      width: 700px;
+      max-width: 100%;
+    }
+
+    .container h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+    }
+
+    td {
+      background-color: #f9f9f9;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f2f2f2;
+    }
+
+    button {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #3498db;
+      color: white;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #125684;
+    }
+
+    a {
+      color: #3498db;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .action-buttons form {
+      margin: 0;
+    }
+
+    .processed-status {
+      font-style: italic;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Pending Deposits</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>User ID</th>
+          <th>Amount</th>
+          <th>Proof</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% deposits.forEach(d => { %>
+          <tr>
+            <td><%= d.user_id %></td>
+            <td>$<%= parseFloat(d.amount).toFixed(2) %></td>
+            <td>
+              <% if (d.payment_proof) { %>
+                <a href="/admin/uploads/<%= d.payment_proof %>" target="_blank">View Proof</a>
+                <% console.log("for deposit:", d.payment_proof) %> <!-- This will log the proof to the console -->
+              <% } else { %>
+                No Proof
+              <% } %>
+            </td>
+            
+            
+            <td><%= d.status %></td>
+            <td>
+              <% if (d.status && d.status.toLowerCase() === "pending") { %>
+                <div class="action-buttons">
+                  <form action="/admin/deposits/<%= d.id %>/approve" method="POST" style="display:inline;">
+                    <button type="submit">Approve</button>
+                  </form>
+                  <form action="/admin/deposits/<%= d.id %>/reject" method="POST" style="display:inline;">
+                    <button type="submit">Reject</button>
+                  </form>
+                </div>
+              <% } else { %>
+                <span class="processed-status">Processed (<%= d.status %>)</span>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</body>
+
+</html>

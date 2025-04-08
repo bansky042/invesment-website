@@ -1,0 +1,27 @@
+<h2>Your Investments</h2>
+<table border="1">
+  <thead>
+    <tr>
+      <th>Plan</th>
+      <th>Amount</th>
+      <th>Profit %</th>
+      <th>Expected Profit</th>
+      <th>Created</th>
+      <th>Matures On</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% investments.forEach(i => { %>
+      <tr>
+        <td><%= i.plan %></td>
+        <td>$<%= parseFloat(i.amount).toFixed(2) %></td>
+        <td><%= i.profit_percent %>%</td>
+        <td>$<%= parseFloat(i.expected_profit).toFixed(2) %></td>
+        <td><%= new Date(i.created_at).toLocaleDateString() %></td>
+        <td><%= new Date(i.mature_at).toLocaleDateString() %></td>
+        <td><%= i.status %></td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
