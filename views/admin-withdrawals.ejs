@@ -7,45 +7,45 @@
   <title>Withdrawal Admin</title>
   <style>
     body {
-      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
-    background-size: cover; /* Ensures the background covers the entire page */
-    height: auto; /* Ensures the body takes the full height of the viewport */
-    background-repeat: no-repeat;
-    margin: 0; /* Remove default margin */
-    padding: 50px 0; /* Remove default padding */
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url(../images/invest.jpg);
+      background-size: cover;
+      background-repeat: no-repeat;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
+      align-items: flex-start;
+      padding: 40px 20px;
+      box-sizing: border-box;
     }
 
     .container {
       background-color: #ffffff;
-      padding: 40px;
+      padding: 30px;
       border-radius: 20px;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      width: 700px;
-      max-width: 100%;
+      width: 100%;
+      max-width: 900px;
+      overflow-x: auto;
     }
 
     .container h1 {
       text-align: center;
       font-size: 28px;
       margin-bottom: 30px;
-      color: #333;
+      color: #2c3e50;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 16px;
+      font-size: 15px;
+      min-width: 700px;
     }
 
-    th,
-    td {
-      padding: 12px;
+    th, td {
+      padding: 12px 10px;
       text-align: center;
       border-bottom: 1px solid #ddd;
     }
@@ -58,20 +58,29 @@
 
     td {
       background-color: #f9f9f9;
+      word-wrap: break-word;
     }
 
     tr:nth-child(even) td {
       background-color: #f2f2f2;
     }
 
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
     button {
-      padding: 8px 15px;
+      padding: 8px 14px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       cursor: pointer;
       background-color: #3498db;
       color: white;
-      transition: 0.3s ease;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
     }
 
     button:hover {
@@ -81,26 +90,32 @@
     a {
       color: #3498db;
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 500;
     }
 
     a:hover {
       text-decoration: underline;
     }
 
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .action-buttons form {
-      margin: 0;
-    }
-
     .processed-status {
       font-style: italic;
       color: #888;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 20px;
+      }
+
+      th, td {
+        font-size: 14px;
+        padding: 10px 8px;
+      }
+
+      button {
+        font-size: 13px;
+        padding: 6px 12px;
+      }
     }
   </style>
 </head>
@@ -134,10 +149,10 @@
             <td>
               <% if (w.status && w.status.toLowerCase() === "pending") { %>
                 <div class="action-buttons">
-                  <form action="/admin/withdrawals/<%= w.id %>/approve" method="POST" style="display:inline;">
+                  <form action="/admin/withdrawals/<%= w.id %>/approve" method="POST">
                     <button type="submit">Approve</button>
                   </form>
-                  <form action="/admin/withdrawals/<%= w.id %>/reject" method="POST" style="display:inline;">
+                  <form action="/admin/withdrawals/<%= w.id %>/reject" method="POST">
                     <button type="submit">Reject</button>
                   </form>
                 </div>

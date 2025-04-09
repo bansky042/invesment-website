@@ -11,6 +11,11 @@ const { Strategy } = require("passport-local");
 const session = require("express-session");
 const multer = require("multer");
 const fs = require('fs');
+const cookieParser = require('cookie-parser');
+const flash = require("connect-flash");
+
+
+
 
 
 function isLoggedIn(req, res, next) {
@@ -47,6 +52,7 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse form data
 const port = 4000;
 
+app.use(cookieParser());
 app.use("/uploads", express.static("uploads"));
 app.use(express.static(path.join(__dirname, "public"))); // Serve static files from public directory
 app.use(express.static("public"));
@@ -82,12 +88,31 @@ app.use(express.json());
 app.use(session({
   secret: "TOPWORLLDSECRET",
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  
   cookie: { maxAge: 1000 * 60 * 60 * 24 },
 }));
 
 app.use(passport.initialize());
 app.use(passport.session());
+
+
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.success_msg = req.flash("success_msg");
+  res.locals.error_msg = req.flash("error_msg");
+  next();
+});
+
+const rewardReferral = async (referrerId) => {
+  const rewardAmount = 10; // or whatever you want
+  await pool.query(
+    'UPDATE users SET referral_balance = referral_balance + $1 WHERE id = $2',
+    [rewardAmount, referrerId]
+  );
+};
+
 
 app.get("/login", (req, res) => res.render("login.ejs"));
 // GET Route for Withdraw Page
@@ -99,8 +124,9 @@ app.get("/withdraw", async (req, res) => {
       "SELECT wallet_address, profit_balance FROM users WHERE id = $1",
       [req.user.id]
     );
-    const user = result.rows[0];
 
+    const user = result.rows[0];
+    console.log("User:", user); // Debugging log
     if (!user.wallet_address) {
       return res.send(
         `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
@@ -136,6 +162,7 @@ app.get("/admin/withdrawals", async (req, res) => {
       JOIN users u ON w.user_id = u.id
       ORDER BY w.created_at DESC
     `);
+    console.log("Withdrawals:", withdrawals.rows); // Debugging log
     res.render("admin-withdrawals", { withdrawals: withdrawals.rows });
   } catch (err) {
     console.error(err);
@@ -151,12 +178,18 @@ app.get("/admin/deposits", async (req, res) => {
       JOIN users u ON d.user_id = u.id
       ORDER BY d.created_at DESC
     `);
+    console.log("Deposits:", deposits.rows); // Debugging log
     res.render("deposit-admin", { deposits: deposits.rows });
   } catch (err) {
     console.error(err);
     res.send("Error fetching deposits");
   }
 });
+
+
+
+
+
 
 // Define the correct directory where your files are stored
 const uploadsDir = path.join(__dirname, 'uploads', 'deposits');
@@ -176,6 +209,26 @@ console.log("File path:", filePath); // Debugging log
     res.sendFile(filePath);
   });
 });
+
+// ✅ Function to reward the referrer
+
+
+// ✅ Optional: Check referral balance (for testing)
+const checkReferralReward = async (referrerId) => {
+  const res = await pool.query('SELECT referral_balance FROM users WHERE id = $1', [referrerId]);
+  return res.rows[0].referral_balance;
+};
+
+// ✅ Route: Handle referral link (sets cookie)
+app.get('/ref/:referralCode', (req, res) => {
+  const { referralCode } = req.params;
+  res.cookie('ref', referralCode, { maxAge: 7 * 24 * 60 * 60 * 1000 }); // 1 week
+  res.redirect('/register');
+});
+
+
+
+
 
 app.get('/investment', (req, res) => {
   res.render('investment', { message: null });
@@ -217,7 +270,8 @@ app.get('/history', async (req, res) => {
       ORDER BY created_at DESC
     `;
     const withdrawalResult = await pool.query(withdrawalQuery, [userId]);
-
+    console.log("Withdrawal Result:", withdrawalResult.rows); // Debugging log
+    console.log("Deposit Result:", depositResult.rows); // Debugging log
     // Normalize withdrawal status
     const withdrawals = withdrawalResult.rows.map(w => ({
       ...w,
@@ -242,19 +296,26 @@ app.get('/history', async (req, res) => {
 app.get("/dashboard", async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
-
+    const userId = req.user.id;
     const { rows } = await pool.query(
-      "SELECT id, username, profit_balance, wallet_address FROM users WHERE id = $1",
-      [req.user.id]
+      "SELECT id, username, profit_balance, wallet_address,referral_balance FROM users WHERE id = $1",
+      [userId]
     );
-
+    console.log( { rows });
     if (rows.length === 0) return res.redirect("/login");
+
+    
+    const referrals = await pool.query("SELECT COUNT(*) FROM referrals WHERE referrer_id = $1", [userId]);
+    const totalReferrals = referrals.rows[0].count;
+    
+    const referralLink = `${req.protocol}://${req.get('host')}/register?ref=${req.user.username}`;
 
     res.render("index.ejs", {
       userId: rows[0].id, // Pass userId to EJS
       users: rows,
       seedPhraseAccepted: req.session.seedPhraseAccepted || false,
       walletAddress: rows[0].wallet_address || "",
+      totalReferrals, referralLink,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -262,7 +323,51 @@ app.get("/dashboard", async (req, res) => {
   }
 });
 
-app.get("/register", (req, res) => res.render("register.ejs"));
+// GET /register
+app.get('/register', async (req, res) => {
+  const referralCode = req.query.ref || null;
+  let referrerUsername = null;
+
+  if (referralCode) {
+    // assuming you store referral codes in users table
+    const referrer = await pool.query('SELECT username FROM users WHERE referral_code = $1', [referralCode]);
+
+    if (referrer.rows.length > 0) {
+      referrerUsername = referrer.rows[0].username;
+    }
+  }
+
+  res.render('register', {
+    referralCode,
+    referrerUsername
+  });
+});
+
+
+app.get("/settings", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login");
+  }
+
+  try {
+    const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
+    const user = userResult.rows[0];
+
+    const seedResult = await pool.query(
+      "SELECT * FROM user_seed_phrases WHERE user_id = $1",
+      [req.user.id]
+    );
+    const seed = seedResult.rows[0] || {};
+
+    res.render("settings", { user, seed }); // now passing both `user` and `seed`
+  } catch (err) {
+    console.error("Error fetching user settings:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
+
 app.get("/forgottenpassword", (req, res) => res.render("forgottenPassword.ejs"));
 app.get("/forgotpassword", (req, res) => res.render("forgotpassword.ejs"));
 app.get("/verify-otp", (req, res) => res.render("otp.ejs"));
@@ -274,6 +379,8 @@ app.get("/withdrawals", async (req, res) => {
       "SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
+
+    console.log( { rows }); // Debugging log
     res.render("withdrawals.ejs", { withdrawals: rows });
   } catch (error) {
     console.error("Error fetching withdrawal history:", error);
@@ -429,7 +536,9 @@ app.post("/submit-walletaddress", async (req, res) => {
 
   const userId = req.user.id; 
   const walletAddress = req.body.walletAddress; 
-
+console.log("Wallet Address:", walletAddress); // Debugging log
+  console.log("User ID:", userId); // Debugging log
+  // Validate wallet address
   if (!walletAddress) {
     return res.status(400).send("Wallet address is required.");
   }
@@ -545,6 +654,51 @@ app.post("/verify-otp", async (req, res) => {
   }
 });
 
+app.post("/update-settings", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login");
+  }
+
+  const { username, email, wallet, password, newPassword, confirmPassword } = req.body;
+
+  try {
+    const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
+    const user = userResult.rows[0];
+
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      req.flash("error_msg", "Incorrect current password.");
+      return res.redirect("/settings");
+    }
+
+    let updatedPassword = user.password;
+
+    if (newPassword || confirmPassword) {
+      if (newPassword !== confirmPassword) {
+        req.flash("error_msg", "New passwords do not match.");
+        return res.redirect("/settings");
+      }
+      updatedPassword = await bcrypt.hash(newPassword, saltRounds);
+    }
+
+    await pool.query(
+      `UPDATE users 
+       SET username = $1, email = $2, wallet_address = $3, password = $4
+       WHERE id = $5`,
+      [username, email, wallet, updatedPassword, req.user.id]
+    );
+
+    req.flash("success_msg", "Settings updated successfully!");
+    res.redirect("/settings");
+
+  } catch (err) {
+    console.error("Error updating settings:", err);
+    req.flash("error_msg", "An error occurred while updating settings.");
+    res.redirect("/settings");
+  }
+});
+
+
 app.post("/deposit",isLoggedIn, upload.single("payment_proof"), async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login"); // Redirect to login if not authenticated
@@ -645,7 +799,7 @@ app.post('/admin/withdrawals/:id/approve', async (req, res) => {
       withdrawal.amount,
       withdrawal.user_id,
     ]);
-
+    console.log("Deducted amount from user's profit balance");
     // Fetch the user details for email
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [withdrawal.user_id]);
     const user = userResult.rows[0];
@@ -719,7 +873,7 @@ app.post('/admin/deposits/:id/approve', async (req, res) => {
       deposit.amount,
       deposit.user_id,
     ]);
-
+    console.log("Increased user's profit balance");
     // Fetch user details
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [deposit.user_id]);
     const user = userResult.rows[0];
@@ -803,10 +957,10 @@ app.post('/investment', async (req, res) => {
 app.post("/withdraw", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
-  const { accountNumber, bankName, amount } = req.body;
+  const { accountNumber, cryptoType, amount } = req.body;
   const userId = req.user.id;
 
-  if (!accountNumber || !bankName || !amount) {
+  if (!accountNumber || !cryptoType || !amount) {
     return res.status(400).send("All fields are required.");
   }
 
@@ -814,7 +968,7 @@ app.post("/withdraw", async (req, res) => {
     // Save withdrawal request to database
     await pool.query(
       "INSERT INTO withdrawals (user_id, account_number, bank_name, amount) VALUES ($1, $2, $3, $4)",
-      [userId, accountNumber, bankName, amount]
+      [userId, accountNumber, cryptoType, amount]
     );
 
     // Fetch user's email and username for more detail in the email
@@ -842,7 +996,7 @@ app.post("/withdraw", async (req, res) => {
         <h3>Withdrawal Alert 🚀</h3>
         <p><strong>User:</strong> ${user.username} (${user.email})</p>
         <p><strong>Account Number:</strong> ${accountNumber}</p>
-        <p><strong>Bank Name:</strong> ${bankName}</p>
+        <p><strong>Bank Name:</strong> ${cryptoType}</p>
         <p><strong>Amount:</strong> ₦${amount}</p>
         <p><strong>User ID:</strong> ${userId}</p>
         <p>Please review and process the withdrawal request.</p>
@@ -966,33 +1120,71 @@ app.post("/forgotpassword", async (req, res, next) => {
 
 app.post("/register", async (req, res, next) => {
   const { email, confirmPassword, phoneNumber, username, country, fullname } = req.body;
+  const referralCodeFromCookie = req.cookies.ref; // This is the code like "mrjones200"
+
+  const generateReferralCode = (username) => username.toLowerCase() + Math.floor(100 + Math.random() * 900);
+  const newReferralCode = generateReferralCode(username);
 
   try {
     const userExists = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (userExists.rows.length > 0) return res.send("Email already exists. Try logging in.");
+    if (userExists.rows.length > 0) return res.send("Email already exists.");
 
     const hashedPassword = await bcrypt.hash(confirmPassword, saltRounds);
+
+    // Create new user and assign them a referral code
     const result = await pool.query(
-      "INSERT INTO users (fullname, username, email, password, phoneNumber, country) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-      [fullname, username, email, hashedPassword, phoneNumber, country]
+      `INSERT INTO users (fullname, username, email, password, phoneNumber, country, referral_code)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [fullname, username, email, hashedPassword, phoneNumber, country, newReferralCode]
     );
 
     const newUser = result.rows[0];
 
-    // Log in the user automatically after registration
-    req.login(newUser, (err) => {
-      if (err) {
-        console.error("Error logging in user after registration:", err);
-        return next(err);
+    // ✅ If they came through a referral link
+    if (referralCodeFromCookie) {
+      const referrerResult = await pool.query(
+        'SELECT id FROM users WHERE referral_code = $1',
+        [referralCodeFromCookie]
+      );
+
+      if (referrerResult.rows.length > 0) {
+        const referrerId = referrerResult.rows[0].id;
+
+        // 1. Save referral relationship
+        await pool.query(
+          'INSERT INTO referrals (referrer_id, referred_id) VALUES ($1, $2)',
+          [referrerId, newUser.id]
+        );
+
+        // 2. ✅ Reward the referrer ($20 in this case)
+        const rewardAmount = 20;
+        await pool.query(
+          'UPDATE users SET referral_balance = referral_balance + $1 WHERE id = $2',
+          [rewardAmount, referrerId]
+        );
+
+        console.log("Referral reward sent to referrer:", referrerId);
+      } else {
+        console.log("Referral code not found in DB.");
       }
-      return res.redirect("/dashboard"); // Redirect to the dashboard
+    }
+
+    req.login(newUser, (err) => {
+      if (err) return next(err);
+      return res.redirect("/dashboard");
     });
 
   } catch (error) {
-    console.error(error);
+    console.error("Error registering user:", error);
     res.status(500).send("Error registering user");
   }
 });
+
+
+
+
+
 
 passport.use(new Strategy(async (username, password, cb) => {
   try {

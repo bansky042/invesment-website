@@ -109,6 +109,13 @@
 
 <div class="container">
   <div class="container-text">
+
+    <% if (referrerUsername) { %>
+        <p style="color: green;">You were referred by <strong>@<%= referrerUsername %></strong></p>
+     
+        <% } %>
+      
+
 <h2>REGISTER</h2>
 <p>Have an account? <a href="/login">Login</a></p>
 </div>
@@ -146,6 +153,9 @@
     <input type="tel" class="form-control" name="phoneNumber" placeholder="enter your phone number" required>
   </div>
 
+  <div class="form-group">
+  <input type="hidden" name="referral" value="<%= referralCode %>">
+</div>
 
   <div class="form-group">
     <label for="country">Country</label>

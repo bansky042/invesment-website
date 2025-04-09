@@ -104,6 +104,9 @@ body{
         padding: 10px 20px;
         box-shadow: 5px 8px 8px rgba(122, 118, 148, 0.658);
     }
+    .settings-button{
+        margin-right: 20px;
+    }
 
  
 /*dashboard section 2*/
@@ -139,6 +142,19 @@ body{
 .second-section-card-inner{
     margin-left: 30px;
     margin-top: 80px;
+   
+}
+.second-section-card-inner2{
+    margin-left: 30px;
+    margin-top: 80px;
+    display: flex;
+    justify-content: space-between;
+
+}
+
+.inner2{
+    margin-right: 60px;
+   
 }
 
 .second-section-card-inner h2{
@@ -150,6 +166,18 @@ body{
     color: #000000;
     font-size: 20px;
 }
+
+.second-section-card-inner2 h2{
+    color: #856404;
+    font-size: 30px;
+}
+
+.second-section-card-inner2 p{
+    color: #000000;
+    font-size: 20px;
+}
+
+
 .second-section-card-inner button{
     padding: 10px 20px;
     background-color: #1d0296d0;
