@@ -2,233 +2,114 @@
 <html lang="en">
 
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deposit - BanMarket</title>
+
+  <!-- Tailwind + Bootstrap + FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css">
+
+  <!-- Page Styles -->
   <style>
     body {
-
       font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-      box-sizing: border-box;
-      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
-    background-size: cover; /* Ensures the background covers the entire page */
-    height: auto; /* Ensures the body takes the full height of the viewport */
-    background-repeat: no-repeat;
-    margin: 0; /* Remove default margin */
-    padding: 50px 0; /* Remove default padding */
-}
-  
-
-    
-
-    .container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      width: 600px;
-      max-width: 100%;
-    }
-
-    .container h2 {
-      text-align: center;
-      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-      font-size: 32px;
-      margin-bottom: 20px;
-    }
-
-    .container h1 {
-      text-align: center;
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-
-    .container p {
-      text-align: center;
-      font-size: 16px;
-      color: #555;
-      margin-bottom: 20px;
-    }
-
-    .container form {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .container form input,
-    .container form button,
-    .coin-type button {
-      border: none;
-      padding: 10px;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: 0.3s ease;
-    }
-
-    .container form input {
-      border-bottom: 1px solid #ccc;
-    }
-
-    .container form input:focus {
-      outline: none;
-      border-color: #3498db;
-    }
-
-    .container form button[type="submit"] {
-      background-color: #3498db;
-      color: white;
-      cursor: pointer;
-    }
-
-    .container form button[type="submit"]:hover {
-      background-color: #125684;
-    }
-
-    .coin-type {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .coin-type button {
-      background-color: #3498db;
-      color: white;
-      padding: 10px 20px;
-      cursor: pointer;
-      border-radius: 12px;
-      transition: background-color 0.3s ease;
-    }
-
-    .coin-type button:hover {
-      background-color: #125684;
-    }
-
-    .wallet-address {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .wallet-address input {
-      width: 80%;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      background-color: #f9f9f9;
-    }
-
-    .wallet-address button {
-      background-color: #3498db;
-      color: white;
-      padding: 10px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
-
-    .wallet-address button:hover {
-      background-color: #125684;
-    }
-
-    #networkText {
-      text-align: center;
-      font-size: 16px;
-      color: #888;
+      background: linear-gradient(to right, rgba(26, 0, 142, 0.7), rgba(129, 0, 0, 0.5)), url(../images/invest.jpg);
+      background-size: cover;
+      background-repeat: no-repeat;
+      padding: 2rem 0;
     }
 
     .copy-btn {
       background-color: #3498db;
       color: white;
       border: none;
-      border-radius: 10px;
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
     }
 
     .copy-btn:hover {
       background-color: #125684;
     }
 
-    .text-green-600 {
-      color: #38a169;
+    input[type="file"]::file-selector-button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
     }
 
-    .text-red-600 {
-      color: #e53e3e;
+    input[type="file"]::file-selector-button:hover {
+      background-color: #125684;
     }
 
-    .text-sm {
-      font-size: 12px;
-    }
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
 
-    .text-gray-500 {
-      color: #6b7280;
-    }
-
-    .text-center {
-      text-align: center;
-    }
-
-    .mb-4 {
-      margin-bottom: 16px;
-    }
-
-    .mt-4 {
-      margin-top: 16px;
+      h2 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col items-center justify-center">
 
-  <div class="container">
-    <h2>Deposit Funds</h2>
+  <!-- Navbar Partial -->
+  <%- include("partials/navbar", { walletAddress,coinType }) %>
 
-    <h1>Welcome, <%= user.username %></h1>
-    <p>Your current wallet balance is: $<%= user.profit_balance %></p>
+  <!-- Deposit Container -->
+  <div class="bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
+    <h2 class="text-center text-2xl font-bold mb-2">Deposit Funds</h2>
+    <h3 class="text-center text-xl mb-2">Welcome, <%= user.username %></h3>
+    <p class="text-center text-gray-600 mb-4">Your current wallet balance is: <strong>$<%= user.profit_balance %></strong></p>
 
+    <!-- Flash Message -->
     <% if (message) { %>
-      <p class="text-center mb-4"><%= message %></p>
+      <p class="text-center mb-4 text-sm text-red-600"><%= message %></p>
     <% } %>
 
-    <% if (userWallet) { %>
-      <p class="text-center text-green-600 mb-4">Wallet Connected: <%= userWallet %></p>
+    <!-- Wallet Status -->
+    <% if (walletAddress) { %>
+      <p class="text-center text-green-600 mb-4">Wallet Connected: <%= walletAddress %></p>
     <% } else { %>
       <p class="text-center text-red-600 mb-4">Please connect your wallet</p>
     <% } %>
 
-    <form action="/deposit" method="POST" enctype="multipart/form-data">
-      <label for="coinType">Select Coin Type:</label>
-      <div class="coin-type">
-        <button type="button" data-coin="USDT">USDT</button>
-        <button type="button" data-coin="Bitcoin">Bitcoin</button>
-        <button type="button" data-coin="Ethereum">Ethereum</button>
-        <button type="button" data-coin="BNB">BNB</button>
-        <button type="button" data-coin="Solana">Solana</button>
+    <!-- Deposit Form -->
+    <form action="/deposit" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">
+      
+      <!-- Coin Selection -->
+      <label class="font-semibold">Select Coin Type:</label>
+      <div class="flex flex-wrap gap-2 justify-center">
+        <% ['USDT', 'Bitcoin', 'Ethereum', 'BNB', 'Solana'].forEach(coin => { %>
+          <button type="button" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded-full text-sm" data-coin="<%= coin %>"><%= coin %></button>
+        <% }); %>
       </div>
 
-      <h3 id="coinLabel">Bitcoin Deposit</h3>
-      <div class="wallet-address">
-        <input type="text" name="address" id="address" required readonly>
+      <!-- Wallet Info -->
+      <h3 class="text-lg font-semibold text-center mt-2" id="coinLabel">Bitcoin Deposit</h3>
+      <div class="flex flex-col sm:flex-row items-center gap-3">
+        <input type="text" name="address" id="address" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 bg-gray-100" required readonly>
         <button type="button" class="copy-btn" onclick="copyWallet()">Copy</button>
       </div>
-      <p id="networkText">Bitcoin Network</p>
+      <p id="networkText" class="text-center text-sm text-gray-500">Bitcoin Network</p>
 
-      <label for="amount">Amount:</label>
-      <input type="number" name="amount" id="amount" required>
+      <!-- Amount -->
+      <label class="font-semibold" for="amount">Amount (USD):</label>
+      <input type="number" name="amount" id="amount" required class="border border-gray-300 rounded-lg px-3 py-2">
 
-      <label for="paymentProof">Payment Proof:</label>
-      <input type="file" name="payment_proof" id="paymentProof" required>
+      <!-- Payment Proof -->
+      <label class="font-semibold" for="paymentProof">Upload Payment Proof:</label>
+      <input type="file" name="payment_proof" id="paymentProof" required class="border border-gray-300 rounded-lg px-3 py-2">
 
-      <button type="submit">Deposit</button>
+      <!-- Submit -->
+      <button type="submit" class="bg-blue-600 hover:bg-blue-800 text-white py-2 rounded-lg font-semibold">Deposit</button>
     </form>
 
     <p class="text-sm text-gray-500 mt-4 text-center">
@@ -236,35 +117,34 @@
     </p>
   </div>
 
+  <!-- Coin Type Wallet Script -->
   <script>
     const coinData = {
-      USDT: { address: 'T9xUSDTwalletExample1', network: 'tron network' },
-      Bitcoin: { address: '1BtcWalletExample2', network: 'bitcoin network' },
-      Ethereum: { address: '0xEthWalletExample3', network: 'ethereum network' },
-      BNB: { address: 'bnb1WalletExample4', network: 'binance smart chain' },
-      Solana: { address: 'SolWalletExample5', network: 'solana network' }
+      USDT: { address: 'T9xUSDTwalletExample1', network: 'TRON Network' },
+      Bitcoin: { address: '1BtcWalletExample2', network: 'Bitcoin Network' },
+      Ethereum: { address: '0xEthWalletExample3', network: 'Ethereum Network' },
+      BNB: { address: 'bnb1WalletExample4', network: 'Binance Smart Chain' },
+      Solana: { address: 'SolWalletExample5', network: 'Solana Network' }
     };
 
-    const coinButtons = document.querySelectorAll('.coin-type button');
-    const walletInput = document.getElementById('address');
+    const buttons = document.querySelectorAll('[data-coin]');
+    const addressInput = document.getElementById('address');
     const coinLabel = document.getElementById('coinLabel');
     const networkText = document.getElementById('networkText');
 
-    coinButtons.forEach(button => {
-      button.addEventListener('click', () => {
-        const coin = button.dataset.coin;
-        const data = coinData[coin];
-        if (data) {
-          walletInput.value = data.address;
-          coinLabel.textContent = `${coin} Deposit`;
-          networkText.textContent = data.network;
-        }
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const coin = btn.dataset.coin;
+        const { address, network } = coinData[coin];
+        addressInput.value = address;
+        coinLabel.textContent = `${coin} Deposit`;
+        networkText.textContent = network;
       });
     });
 
     function copyWallet() {
-      const walletAddress = document.getElementById('address');
-      walletAddress.select();
+      addressInput.select();
+      addressInput.setSelectionRange(0, 99999);
       document.execCommand('copy');
       alert('Wallet address copied to clipboard!');
     }

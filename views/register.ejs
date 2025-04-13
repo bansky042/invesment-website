@@ -109,21 +109,21 @@
 
 <div class="container">
   <div class="container-text">
-
     <% if (referrerUsername) { %>
-        <p style="color: green;">You were referred by <strong>@<%= referrerUsername %></strong></p>
-     
-        <% } %>
-      
-
-<h2>REGISTER</h2>
-<p>Have an account? <a href="/login">Login</a></p>
-</div>
-
+      <p style="color: green;">You were referred by <strong>@<%= referrerUsername %></strong></p>
+    <% } %>
+  
+    <h2>REGISTER</h2>
+    <p>Have an account? <a href="/login">Login</a></p>
+  </div>
+  
 <div class="container2">
 
 <form action="/register" method="POST">
 
+    <input type="hidden" name="referralCode" value="<%= referralCode %>">
+  
+  
     <div class="form-group">
         <label for="text">full name</label>
         <input type="text" class="form-control" name="fullname" placeholder="enter your full name" required>

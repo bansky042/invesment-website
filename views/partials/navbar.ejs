@@ -1,0 +1,176 @@
+<!-- Wrapper Container -->
+<div id="layoutWrapper" style="position: relative; display: flex;">
+  
+  <!-- Sidebar -->
+  <div id="sidebar" class="sidebar text-white fixed top-0 left-0 h-screen z-50 transition-all duration-300"
+     style="width: 80px; background-color: transparent; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000; transition: width 0.3s ease, background-color 0.3s ease;">
+ <div class="flex flex-col h-full justify-between">
+
+      <!-- Top Section -->
+      <div>
+        <!-- Hamburger / Close Button -->
+        <div class="flex justify-end p-4">
+          <button id="toggleSidebar" class="text-white focus:outline-none">
+            <i class="fas fa-bars text-2xl" id="hamburgerIcon"></i>
+            <i class="fas fa-times text-2xl hidden" id="closeIcon"></i>
+          </button>
+        </div>
+
+       
+        <!-- Profile Section -->
+<form id="profileForm" action="/upload-profile" method="POST" enctype="multipart/form-data" class="flex flex-col items-center justify-center mt-2 mb-6 transition-all duration-300">
+  <label for="profileUpload" class="cursor-pointer">
+    <img src="<%= user.profile_image%>" alt="User Avatar"
+         class="rounded-full object-cover border-2 border-white transition-all duration-300"
+         id="profileImage"
+         style="width: 48px; height: 48px;">
+  </label>
+  <input type="file" id="profileUpload" name="profileImage" accept="image/*" class="hidden" onchange="document.getElementById('profileForm').submit()">
+  
+  <% if (typeof user !== 'undefined') { %>
+    <h2 id="profileText" class="text-white text-sm mt-2 hidden transition-opacity duration-300">Hi, <%= user.username %>.</h2>
+  <% } else { %>
+    <h2 id="profileText" class="text-white text-sm mt-2 hidden transition-opacity duration-300">Welcome, Guest.</h2>
+  <% } %>
+</form>
+
+
+        <!-- Menu Items -->
+        <div class="mt-4 flex flex-col gap-6 items-center" id="menuItems">
+          <a href="#" id="Dashboard" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-tachometer-alt text-xl w-6 text-center"></i>
+               <span class="ml-2 hidden">Dashboard</span>
+          </a>
+          
+          <a href="#" id="withdrawLink" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-hand-holding-usd text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">Withdraw</span>
+          </a>
+          <a href="#" id="depositLink" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-university text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">Deposit</span>
+          </a>
+          <a href="#" id="historyLink" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-history text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">History</span>
+          </a>
+          <a href="#" id="investLink" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-chart-line text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">Invest</span>
+          </a>
+          <a href="/logout" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-sign-out-alt text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">Logout</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Bottom Wallet/Settings -->
+      <div class="flex flex-col items-center gap-4 mb-6 px-4" id="walletSection">
+        <% if (!walletAddress && !coinType) { %>
+          
+         <a href="/insertWalletAddress" ><button class="btn btn-primary w-full hidden">Connect Wallet</button>
+         </a>
+        <% } else { %>
+          <p class="text-sm hidden">Wallet: <%= walletAddress %></p>
+          <p class="text-sm hidden">Coin Type: <%= coinType %></p>
+          <form action="/disconnectWallet" method="POST" class="w-full hidden">
+
+            <button type="submit" class="btn btn-danger w-full">Disconnect</button>
+          </form>
+        <% } %>
+        <a href="/settings" class="text-white hover:text-gray-300">
+          <i class="fas fa-cog text-2xl"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent" class="flex-1 p-6 transition-all duration-300" style="transition: margin-left 0.3s ease;">
+    <!-- Your page content here -->
+  </div>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('toggleSidebar');
+  const mainContent = document.getElementById('mainContent');
+  const menuItems = document.querySelectorAll('#menuItems span, #walletSection .hidden');
+  const hamburgerIcon = document.getElementById('hamburgerIcon');
+  const closeIcon = document.getElementById('closeIcon');
+  const profileImage = document.getElementById('profileImage');
+  const profileText = document.getElementById('profileText');
+
+  let isExpanded = false;
+
+  toggleBtn.addEventListener('click', () => {
+  isExpanded = !isExpanded;
+
+  if (isExpanded) {
+    sidebar.style.width = '288px';
+    sidebar.style.backgroundColor = '#000'; // Expand = black background
+    menuItems.forEach(el => el.classList.remove('hidden'));
+    hamburgerIcon.classList.add('hidden');
+    closeIcon.classList.remove('hidden');
+
+    profileImage.style.width = '96px';
+    profileImage.style.height = '96px';
+    profileText.classList.remove('hidden');
+  } else {
+    sidebar.style.width = '80px';
+    sidebar.style.backgroundColor = 'transparent'; // Collapse = transparent
+    menuItems.forEach(el => el.classList.add('hidden'));
+    hamburgerIcon.classList.remove('hidden');
+    closeIcon.classList.add('hidden');
+
+    profileImage.style.width = '48px';
+    profileImage.style.height = '48px';
+    profileText.classList.add('hidden');
+ 
+    }
+  });
+</script>
+<script>
+  const walletAddress = "<%= walletAddress %>";
+  const coinType = "<%= coinType %>";
+
+  document.getElementById('Dashboard').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/dashboard';
+  };
+
+  document.getElementById('withdrawLink').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/withdraw';
+  };
+
+  document.getElementById('historyLink').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/history';
+  };
+
+  document.getElementById('depositLink').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/deposit';
+  };
+
+  document.getElementById('investLink').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/invest';
+  };
+
+  function copyReferralLink() {
+    const input = document.getElementById('referralLinkInput');
+    input.select();
+    input.setSelectionRange(0, 99999); // For mobile
+    document.execCommand("copy");
+    alert("Referral link copied to clipboard!");
+  }
+  
+</script>

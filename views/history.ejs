@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Transaction History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css">
+ 
   <style>
     body {
       background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
@@ -25,8 +29,8 @@
       padding: 30px 20px;
       border-radius: 20px;
       box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-      width: 100%;
-      max-width: 800px;
+      width: 100%;          /* ✅ keep this */
+      max-width: 800px;      /* ✅ optional: tailwind handles it */
       text-align: center;
     }
 
@@ -105,7 +109,7 @@
       gap: 10px;
     }
 
-    .btn {
+    .buttons {
       background-color: #4a90e2;
       color: #fff;
       border: none;
@@ -114,7 +118,7 @@
       cursor: pointer;
     }
 
-    .btn:hover {
+    .buttons:hover {
       background-color: #3a78c2;
     }
 
@@ -152,100 +156,113 @@
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Transaction History</h1>
+<body class="min-h-screen bg-cover bg-no-repeat px-4 py-8"
+      style="background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url('../images/invest.jpg');">
+ <%- include('partials/navbar.ejs') %>
 
-    <!-- Deposit History -->
-    <!-- Deposit History -->
-<section class="history-section">
-  <h2>Deposit History</h2>
-  <div class="controls">
-    <select class="filter-select" id="depositFilter" onchange="filterRows('deposit')">
-      <option value="all">All</option>
-      <option value="approved">Approved</option>
-      <option value="pending">Pending</option>
-      <option value="rejected">Rejected</option>
-    </select>
-    <button class="btn" onclick="exportTableAsPDF('depositTable', 'Deposits')">Export PDF</button>  </div>
-  <div class="table-wrapper">
-    <table id="depositTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="depositBody">
-        <% if (deposits.length > 0) { %>
-          <% deposits.forEach(d => { %>
-            <tr data-status="<%= d.status.trim().toLowerCase() %>">
-              <td><%= new Date(d.created_at).toLocaleString() %></td>
-              <td class="amount">$<%= parseFloat(d.amount).toFixed(2) %></td>
-              <td class="status-<%= d.status.trim().toLowerCase() %>">
-                <% if (d.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
-                <% } else if (d.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
-                <% } else { %> ❌ Rejected <% } %>
-              </td>
+ <main class="w-full max-w-4xl bg-white rounded-2xl shadow-xl px-4 sm:px-6 md:px-10 py-6 md:py-10 mt-10 mx-auto">
+  <h1 class="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">Transaction History</h1>
+
+    <!-- DEPOSIT SECTION -->
+    <section class="mb-12">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">Deposit History</h2>
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <select class="filter-select border border-gray-300 rounded-md px-3 py-2 w-full sm:w-auto" id="depositFilter" onchange="filterRows('deposit')">
+          <option value="all">All</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md" onclick="exportTableAsPDF('depositTable', 'Deposits')">
+          Export PDF
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[600px] text-sm text-center border border-gray-200" id="depositTable">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="p-3">Date</th>
+              <th class="p-3">Amount</th>
+              <th class="p-3">Status</th>
             </tr>
-          <% }) %>
-        <% } else { %>
-          <tr><td colspan="3">No deposit history found.</td></tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-  <div class="summary" id="depositTotal"></div>
-  <div class="pagination" id="depositPagination"></div>
-</section>
+          </thead>
+          <tbody id="depositBody" class="bg-white divide-y divide-gray-100">
+            <% if (deposits.length > 0) { %>
+              <% deposits.forEach(d => { %>
+                <tr data-status="<%= d.status.trim().toLowerCase() %>">
+                  <td class="p-3"><%= new Date(d.created_at).toLocaleString() %></td>
+                  <td class="p-3 amount">$<%= parseFloat(d.amount).toFixed(2) %></td>
+                  <td class="p-3 font-semibold status-<%= d.status.trim().toLowerCase() %>">
+                    <% if (d.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
+                    <% } else if (d.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
+                    <% } else { %> ❌ Rejected <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="3" class="p-3">No deposit history found.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary text-gray-700 mt-4 font-medium" id="depositTotal"></div>
+      <div class="pagination mt-3 flex flex-wrap gap-2 justify-center" id="depositPagination"></div>
+    </section>
 
-<!-- Withdrawal History -->
-<section class="history-section2">
-  <h2>Withdrawal History</h2>
-  <div class="controls">
-    <select class="filter-select" id="withdrawalFilter" onchange="filterRows('withdrawal')">
-      <option value="all">All</option>
-      <option value="approved">Approved</option>
-      <option value="pending">Pending</option>
-      <option value="rejected">Rejected</option>
-    </select>
-    <button class="btn" onclick="exportTableAsPDF('withdrawalTable', 'Withdrawals')">Export PDF</button> </div>
-  <div class="table-wrapper">
-    <table id="withdrawalTable">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="withdrawalBody">
-        <% if (withdrawals.length > 0) { %>
-          <% withdrawals.forEach(w => { %>
-            <tr data-status="<%= w.status.trim().toLowerCase() %>">
-              <td><%= new Date(w.created_at).toLocaleString() %></td>
-              <td class="amount">$<%= parseFloat(w.amount).toFixed(2) %></td>
-              <td class="status-<%= w.status.trim().toLowerCase() %>">
-                <% if (w.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
-                <% } else if (w.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
-                <% } else { %> ❌ Rejected <% } %>
-              </td>
+    <!-- WITHDRAWAL SECTION -->
+    <section>
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">Withdrawal History</h2>
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
+        <select class="filter-select border border-gray-300 rounded-md px-3 py-2 w-full sm:w-auto" id="withdrawalFilter" onchange="filterRows('withdrawal')">
+          <option value="all">All</option>
+          <option value="approved">Approved</option>
+          <option value="pending">Pending</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md" onclick="exportTableAsPDF('withdrawalTable', 'Withdrawals')">
+          Export PDF
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[600px] text-sm text-center border border-gray-200" id="withdrawalTable">
+          <thead class="bg-blue-100">
+            <tr>
+              <th class="p-3">Date</th>
+              <th class="p-3">Amount</th>
+              <th class="p-3">Status</th>
             </tr>
-          <% }) %>
-        <% } else { %>
-          <tr><td colspan="3">No withdrawal history found.</td></tr>
-        <% } %>
-      </tbody>
-    </table>
-  </div>
-  <div class="summary" id="withdrawalTotal"></div>
-  <div class="pagination" id="withdrawalPagination"></div>
-</section>
+          </thead>
+          <tbody id="withdrawalBody" class="bg-white divide-y divide-gray-100">
+            <% if (withdrawals.length > 0) { %>
+              <% withdrawals.forEach(w => { %>
+                <tr data-status="<%= w.status.trim().toLowerCase() %>">
+                  <td class="p-3"><%= new Date(w.created_at).toLocaleString() %></td>
+                  <td class="p-3 amount">$<%= parseFloat(w.amount).toFixed(2) %></td>
+                  <td class="p-3 font-semibold status-<%= w.status.trim().toLowerCase() %>">
+                    <% if (w.status.trim().toLowerCase() === 'approved') { %> ✅ Approved
+                    <% } else if (w.status.trim().toLowerCase() === 'pending') { %> ⏳ Pending
+                    <% } else { %> ❌ Rejected <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="3" class="p-3">No withdrawal history found.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <div class="summary text-gray-700 mt-4 font-medium" id="withdrawalTotal"></div>
+      <div class="pagination mt-3 flex flex-wrap gap-2 justify-center" id="withdrawalPagination"></div>
+    </section>
 
+    <div class="mt-8 text-center">
+      <a href="/dashboard" class="text-blue-600 hover:underline font-semibold">← Back to Dashboard</a>
+    </div>
+  </main>
+</body>
 
-    <a href="/dashboard" class="back-link">← Back to Dashboard</a>
-  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <script>
@@ -316,81 +333,89 @@
     
     const { jsPDF } = window.jspdf;
 
-function exportTableAsPDF(tableId, filename) {
+    function exportTableAsPDF(tableId, filename) {
   const doc = new jsPDF();
   const table = document.getElementById(tableId);
   const rows = table.querySelectorAll('tr');
-  
-  // Set up basic font and margins
+
   doc.setFont('helvetica', 'normal');
   const margin = 20;
   let y = margin;
-  
-  // Add Header
+
   doc.setFontSize(16);
   doc.text('Transaction History - ' + filename, margin, y);
   y += 12;
-  
-  // Add date or other info in the header
+
   const date = new Date().toLocaleString();
   doc.setFontSize(10);
   doc.text('Date Generated: ' + date, margin, y);
   y += 12;
-  
-  // Draw table headers with white background
+
   const headers = ['Date', 'Amount', 'Status'];
-  const columnWidth = [50, 30, 40]; // width for each column
-  
-  // Table Background Color (White)
-  doc.setFillColor(255, 255, 255); // White color for background
-  doc.rect(margin, y, columnWidth[0], 10, 'F');
-  doc.rect(margin + columnWidth[0], y, columnWidth[1], 10, 'F');
-  doc.rect(margin + columnWidth[0] + columnWidth[1], y, columnWidth[2], 10, 'F');
-  
-  // Set font for headers
+  const columnWidth = [70, 40, 60];
+  const rowHeight = 10;
+  const pageHeight = doc.internal.pageSize.height;
+
+  // Draw header background
+  doc.setFillColor(255, 255, 255);
+  for (let i = 0, x = margin; i < columnWidth.length; i++, x += columnWidth[i]) {
+    doc.rect(x, y, columnWidth[i], rowHeight, 'F');
+  }
+
+  // Header text
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0); // Black text for headers
+  doc.setTextColor(0, 0, 0);
   doc.text(headers[0], margin + 5, y + 7);
   doc.text(headers[1], margin + columnWidth[0] + 5, y + 7);
   doc.text(headers[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 7);
-  y += 12;
+  y += rowHeight;
 
-  // Table Content
   doc.setFont('helvetica', 'normal');
-  let rowHeight = 10;
-  let rowIndex = 0;
 
   rows.forEach((row, index) => {
-    if (index === 0) return; // Skip the header row
+    if (index === 0) return; // skip table <thead>
 
-    const cells = row.querySelectorAll('th, td');
-    const rowData = [...cells].map(cell => cell.innerText);
-    const status = rowData[2].toLowerCase().trim();
+    const cells = row.querySelectorAll('td');
+    if (cells.length === 0) return; // skip "no data" rows
 
-    // Add Row Content
-    doc.setTextColor(0, 0, 0); // Black text for row content
-    doc.text(rowData[0], margin + 5, y + 6);
-    doc.text(rowData[1], margin + columnWidth[0] + 5, y + 6);
-    doc.text(rowData[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 6);
+    const rowData = [...cells].map(cell => cell.innerText.trim());
 
-    y += rowHeight;
-
-    // Add a new page if the content goes beyond a certain point
-    if (y > 250) {
+    // Handle page break
+    if (y + rowHeight > pageHeight - 20) {
       doc.addPage();
       y = margin;
-    }
-  });
 
-  // Footer: Add Page Number
-  const pageCount = doc.internal.getNumberOfPages();
+      // Redraw table headers on new page
+      doc.setFont('helvetica', 'bold');
+      doc.setFillColor(255, 255, 255);
+      for (let i = 0, x = margin; i < columnWidth.length; i++, x += columnWidth[i]) {
+        doc.rect(x, y, columnWidth[i], rowHeight, 'F');
+      }
+
+      doc.text(headers[0], margin + 5, y + 7);
+      doc.text(headers[1], margin + columnWidth[0] + 5, y + 7);
+      doc.text(headers[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 7);
+      y += rowHeight;
+      doc.setFont('helvetica', 'normal');
+    }
+
+    // Draw row data
+    doc.text(rowData[0], margin + 5, y + 7);
+    doc.text(rowData[1], margin + columnWidth[0] + 5, y + 7);
+    doc.text(rowData[2], margin + columnWidth[0] + columnWidth[1] + 5, y + 7);
+    y += rowHeight;
+  });
+// Footer: Add Page Number
+const pageCount = doc.internal.getNumberOfPages();
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150); // Grey color for footer text
   doc.text('Page ' + pageCount, margin, y);
 
-  // Save the generated PDF
-  doc.save(`${filename}.pdf`);
+
+  doc.save(`${filename}_history.pdf`);
 }
+
+
 
 
     // Run on page load

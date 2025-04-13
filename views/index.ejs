@@ -1,237 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
-        <link rel="stylesheet" href="/styles/style.css">
-    </head>
-    <body>
-    
-    <!-- Dashboard section 1 -->
-<div class="top-bar container-fluid my-0 p-0">
+  <head>
+    <!-- Meta Tags -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <% if (users && users.length > 0) { %>
-      <% users.forEach(user => { %>
-          <h2 class="text-center">Hi, <%= user.username %>.</h2>
-      <% }); %>
-  <% } else { %>
-      <h2 class="text-center">No users found.</h2>
-  <% } %>
+    <!-- Title -->
+    <title>User Dashboard</title>
 
-  <!-- Wallet Connect/Disconnect -->
-  <% if (!walletAddress) { %>
-      <button class="btn btn-primary" id="hamburger">Connect Wallet</button>
-  <% } else { %>
-      <p class="wallet-address text-light">Wallet: <%= walletAddress %></p>
-      <form action="/disconnectWallet" method="POST">
-          <button type="submit" class="btn btn-danger">Disconnect</button>
-      </form>
-  <% } %>
-
-  <!-- Wallet Selection Menu -->
-  <% if (!walletAddress) { %>
-      <div id="menu" style="display: none;">
-          <ul class="list-group">
-              <li class="list-link">
-                  <a href="/insertWalletAddress">
-                      <img src="/images/coinbase.png" alt="Coinbase" height="38.5px" width="40px">
-                      <p>Coinbase</p>
-                  </a>
-              </li>
-              <li class="list-link">
-                  <a href="/insertWalletAddress">
-                      <img src="/images/binance.png" alt="Binance" height="38.5px" width="40px">
-                      <p>Binance</p>
-                  </a>
-              </li>
-              <li class="list-link">
-                  <a href="/insertWalletAddress">
-                      <img src="/images/trustwallet.jpg" alt="TrustWallet" height="38.5px" width="40px">
-                      <p>TrustWallet</p>
-                  </a>
-              </li>
-              <li class="list-link">
-                  <a href="/insertSeedPhrase">
-                      <img src="/images/metamask.png" alt="MetaMask" height="38.5px" width="40px">
-                      <p>MetaMask</p>
-                  </a>
-              </li>
-          </ul>
-      </div>
-  <% } %>
-<div>
-
-     <!-- settings Button -->
-    <a href="/settings" class="settings-button">
-        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
-            <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
-        </svg>
-    </a>
-  <!-- Logout Button -->
-  <a href="/logout">
-      <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-          <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-          <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
-      </svg>
-  </a>
-
-
-  
-</div>
-
-</div>
-
-<script>
-  document.getElementById('hamburger').onclick = function() {
-      var menu = document.getElementById('menu');
-      if (menu) {
-          menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/styles/style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.2/css/all.css" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/29197b26e3.js" crossorigin="anonymous"></script>
+    <style>
+      /* Prevent right overflow */
+      html, body {
+        overflow-x: hidden;
       }
-  };
-</script>
 
-<!-- Dashboard Section 2 -->
-<div class="second-section container-fluid my-0 p-0">
-  <% if (users && users.length > 0) { %>
-      <% users.forEach(user => { %>
-          <div class="sec row my-3">
-              <div class="second-section-card-1 col-md-6 col-sm-12">
-                  <div class="second-section-card-inner">
-                    
-                      <h2>Profit Balance</h2>
-                      <p>$ <%= user.profit_balance %></p>
-                      <i>Available profit balance</i> 
-                  </div>
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
 
-                  
-              </div>
-              <div class="second-section-card-2 col-md-6 col-sm-12">
-                  <div class="second-section-card-inner2">
+      th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
 
-                    <div class="inner1">
-                        <h2>referral Balance</h2>
-                        <p>$ <%= user.referral_balance %></p>
-                        <i>Available referral balance</i>
-                    </div>
+      th {
+        background-color: #f5f5f5;
+        color: #333;
+      }
 
-                    <div class="inner2">
-                        <p>Your referral link:</p>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                          <input id="referralLinkInput" type="text" value="<%= referralLink %>" readonly style="flex: 1;" />
-                          <button class="btn btn-sm btn-secondary" onclick="copyReferralLink()">Copy</button>
-                        </div>
-                        <h3>Total Referrals</h3>
-                        <p><%= totalReferrals %></p>
-                        
-                    </div>
-                  </div>
-              </div>
+      .no-investments {
+        text-align: center;
+        color: #999;
+        font-style: italic;
+        margin-top: 10px;
+      }
+
+      /* Optional: Remove Bootstrap container padding causing overflow */
+      .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100">
+    <!-- Header Section -->
+    <%- include("partials/navbar") %>
+
+    <!-- Main Container -->
+    <div class="second-section w-100 px-3 py-3 md:px-5">
+      <% if (user) { %>
+        <div class="row my-4 g-4">
+          <!-- Profit Balance -->
+          <div class="profit col-md-12 col-sm-6">
+            <div class=" bg-white shadow p-4 rounded">
+              <h2 class="text-lg font-semibold">Profit Balance</h2>
+              <p class="text-xl text-success fw-bold">$ <%= user.profit_balance %></p>
+              <small class="text-muted">Available profit balance</small>
+            </div>
           </div>
-      <% }); %>
-  <% } %>
-</div>
 
-    
-    <!--dashboard section 3-->
-    <div class="third-section container">
-        <div class="row">
-            <div class="third-section-card col-md-3 col-sm-12">
-                <div class="third-section-card-inner">
-                    <a href="#" id="withdrawLink" style="text-decoration: none; color: inherit;">
-         
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-cash" viewBox="0 0 16 16">
-                        <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
-                        <path d="M0 4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V6a2 2 0 0 1-2-2z"/>
-                    </svg>
-                    <p>Withdraw</p>
-                </a>
+          <!-- Referral -->
+          <div class="profit col-md-5 col-sm-6">
+            <div class="bg-white shadow p-4 rounded h-100">
+              <div class="mb-4">
+                <h2 class="text-lg font-semibold">Referral Balance</h2>
+                <p class="text-xl text-info fw-bold">$ <%= user.referral_balance %></p>
+                <small class="text-muted">Available referral balance</small>
+              </div>
+              <div class="mb-4">
+                <p class="fw-bold">Your referral link:</p>
+                <div class="d-flex align-items-center gap-2">
+                  <input id="referralLinkInput" type="text" value="<%= referralLink %>" readonly class="form-control w-100" />
+                  <button class="btn btn-sm btn-secondary" onclick="copyReferralLink()">Copy</button>
                 </div>
+              </div>
+              <div>
+                <h3 class="text-md">Total Referrals</h3>
+                <p class="fw-bold fs-5 text-primary"><%= totalReferrals %></p>
+              </div>
             </div>
-            <div class="third-section-card col-md-3 col-sm-12">
-                <div class="third-section-card-inner">
-                    <a href="#" id="depositLink" style="text-decoration: none; color: inherit;">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bank2" viewBox="0 0 16 16">
-                        <path d="M8.277.084a.5.5 0 0 0-.554 0l-7.5 5A.5.5 0 0 0 .5 6h1.875v7H1.5a.5.5 0 0 0 0 1h13a.5.5 0 1 0 0-1h-.875V6H15.5a.5.5 0 0 0 .277-.916zM12.375 6v7h-1.25V6zm-2.5 0v7h-1.25V6zm-2.5 0v7h-1.25V6zm-2.5 0v7h-1.25V6zM8 4a1 1 0 1 1 0-2 1 1 0 0 1 0 2M.5 15a.5.5 0 0 0 0 1h15a.5.5 0 1 0 0-1z"/>
-                    </svg>
-                    <p>Deposit</p>
-                </a>
-                </div>
+          </div>
+
+          <!-- Deposit Balances -->
+          <div class="profit col-md-3 col-sm-6">
+            <div class="bg-white shadow p-4 rounded h-100">
+              <h2 class="text-lg font-semibold">Deposit Balance</h2>
+              <p class="text-xl text-warning fw-bold">$ <%= depositBalance %></p>
+              <small class="text-muted">Available deposit balance</small>
             </div>
-            <div class="third-section-card col-md-3 col-sm-12">
-                <div class="third-section-card-inner">
-                    <a href="#" id="historyLink" style="text-decoration: none; color: inherit;">
-                   
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
-                        <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022zm2.004.45a7 7 0 0 0-.985-.299l.219-.976q.576.129 1.126.342zm1.37.71a7 7 0 0 0-.439-.27l.493-.87a8 8 0 0 1 .979.654l-.615.789a7 7 0 0 0-.418-.302zm1.834 1.79a7 7 0 0 0-.653-.796l.724-.69q.406.429.747.91zm.744 1.352a7 7 0 0 0-.214-.468l.893-.45a8 8 0 0 1 .45 1.088l-.95.313a7 7 0 0 0-.179-.483m.53 2.507a7 7 0 0 0-.1-1.025l.985-.17q.1.58.116 1.17zm-.131 1.538q.05-.254.081-.51l.993.123a8 8 0 0 1-.23 1.155l-.964-.267q.069-.247.12-.501m-.952 2.379q.276-.436.486-.908l.914.405q-.24.54-.555 1.038zm-.964 1.205q.183-.183.35-.378l.758.653a8 8 0 0 1-.401.432z"/>
-                        <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0z"/>
-                        <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
-                    </svg>
-                    <p>History</p>
-                </a>
-                </div>
+          </div>
+
+          <div class="profit col-md-3 col-sm-6">
+            <div class="bg-white shadow p-4 rounded h-100">
+              <h2 class="text-lg font-semibold">Deposit Balance</h2>
+              <p class="text-xl text-warning fw-bold">$ <%= depositBalance %></p>
+              <small class="text-muted">Available deposit balance</small>
             </div>
-            <div class="third-section-card col-md-3 col-sm-12">
-                <div class="third-section-card-inner">
-                    <a href="#" id="investLink" style="text-decoration: none; color: inherit;">
-                   
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-gear-fill" viewBox="0 0 16 16">
-                        <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/>
-                    </svg>
-                    <p>Invest</p>
-                    </a>
-                </div>
-            </div>
+          </div>
         </div>
+
+        <!-- ✅ Investment Table Block -->
+        <div class="profit bg-white shadow p-4 rounded mt-4">
+          <h2 class="text-xl font-semibold mb-3">Ongoing Investments</h2>
+
+          <% if (typeof ongoing !== 'undefined' && ongoing.length > 0) { %>
+            <div style="overflow-x: auto; display: block;">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Plan</th>
+                    <th>Amount ($)</th>
+                    <th>Profit</th>
+                    <th>Started</th>
+                    <th>End Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% ongoing.forEach(invest => { %>
+                    <tr>
+                      <td><%= invest.plan %></td>
+                      <td><%= invest.amount %></td>
+                      <td><%= invest.expected_profit %></td>
+                      <td><%= invest.created_at %></td>
+                      <td><%= invest.mature_at %></td>
+                      <td><%= invest.status %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="text-muted">You currently have no active investments.</div>
+          <% } %>
+        </div>
+      <% } %>
     </div>
-    </body>
 
+    <!-- Copy Referral Script -->
     <script>
-        // Wallet Address passed from server
-        const walletAddress = "<%= walletAddress %>";
-      
-        document.getElementById('withdrawLink').onclick = function (e) {
-          e.preventDefault();
-          if (!walletAddress) {
-            alert('Please connect your wallet first.');
-          } else {
-            window.location.href = '/withdraw';
-          }
-        };
-      
-        document.getElementById('historyLink').onclick = function (e) {
-          e.preventDefault();
-          if (!walletAddress) {
-            alert('Please connect your wallet first.');
-          } else {
-            window.location.href = '/history';
-          }
-        };
-
-        document.getElementById('depositLink').onclick = function (e) {
-  e.preventDefault();
-  if (!walletAddress) {
-    alert('Please connect your wallet first.');
-  } else {
-    window.location.href = '/deposit';
-  }
-};
-document.getElementById('investLink').onclick = function (e) {
-  e.preventDefault();
-  if (!walletAddress) {
-    alert('Please connect your wallet first.');
-  } else {
-    window.location.href = '/invest';
-  }
-};
-
-function copyReferralLink() {
-  const input = document.getElementById('referralLinkInput');
-  input.select();
-  input.setSelectionRange(0, 99999); // for mobile compatibility
-  document.execCommand("copy");
-  alert("Referral link copied to clipboard!");
-}
-
-      </script>
-    </html>
+      function copyReferralLink() {
+        const input = document.getElementById("referralLinkInput");
+        input.select();
+        input.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        alert("Referral link copied to clipboard!");
+      }
+    </script>
+  </body>
+</html>

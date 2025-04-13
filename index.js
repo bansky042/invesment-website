@@ -48,6 +48,19 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 
 
+// Profile image storage
+const profileStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/profile');
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+const uploadProfile = multer({ storage: profileStorage });
+
+
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse form data
 const port = 4000;
@@ -57,6 +70,14 @@ app.use("/uploads", express.static("uploads"));
 app.use(express.static(path.join(__dirname, "public"))); // Serve static files from public directory
 app.use(express.static("public"));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use((req, res, next) => {
+  if (req.user) {
+    res.locals.user = req.user;
+    res.locals.users = [req.user];
+    res.locals.walletAddress = req.user.wallet_address;
+  }
+  next();
+});
 
 const adminEmail = "abanakosisochukwu03@gmail.com";
 
@@ -105,13 +126,21 @@ app.use((req, res, next) => {
   next();
 });
 
-const rewardReferral = async (referrerId) => {
-  const rewardAmount = 10; // or whatever you want
-  await pool.query(
-    'UPDATE users SET referral_balance = referral_balance + $1 WHERE id = $2',
-    [rewardAmount, referrerId]
-  );
-};
+app.use((req, res, next) => {
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+  }
+  next();
+});
+
+
+//const rewardReferral = async (referrerId) => {
+ // const rewardAmount = 10; // or whatever you want
+//  await pool.query(
+ //   'UPDATE users SET referral_balance = referral_balance + $1 WHERE id = $2',
+ //   [rewardAmount, referrerId]
+//  );
+//};
 
 
 app.get("/login", (req, res) => res.render("login.ejs"));
@@ -138,13 +167,25 @@ app.get("/withdraw", async (req, res) => {
       "SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
-
+    const userWallet = await pool.query(
+      'SELECT wallet_address, coin_type FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    
+    const walletAddress = userWallet.rows[0]?.wallet_address;
+   
     const withdrawals = withdrawalsResult.rows;
+    const coinType = userWallet.rows[0]?.coin_type;
 
     res.render("withdraw", {
       user,
       message: req.session.message || null,
       withdrawals, // Pass it here
+      user: req.user,
+      users: [req.user],
+      walletAddress,
+      coinType,
+      
     });
 
     req.session.message = null;
@@ -220,8 +261,18 @@ const checkReferralReward = async (referrerId) => {
 };
 
 // ✅ Route: Handle referral link (sets cookie)
-app.get('/ref/:referralCode', (req, res) => {
+app.get('/ref/:referralCode', async (req, res) => {
   const { referralCode } = req.params;
+
+  const result = await pool.query(
+    'SELECT username FROM users WHERE referral_code = $1',
+    [referralCode]
+  );
+
+  if (result.rows.length === 0) {
+    return res.send(`<h2 style="color:red;">Invalid referral code: ${referralCode}</h2><a href="/register">Continue to Register</a>`);
+  }
+
   res.cookie('ref', referralCode, { maxAge: 7 * 24 * 60 * 60 * 1000 }); // 1 week
   res.redirect('/register');
 });
@@ -230,8 +281,33 @@ app.get('/ref/:referralCode', (req, res) => {
 
 
 
-app.get('/investment', (req, res) => {
-  res.render('investment', { message: null });
+app.get('/investment', async (req, res) => {
+  const user = req.user;
+
+  // Fetch user investments (assuming getUserInvestments is correct)
+  const ongoing = await getUserInvestments(user.id); 
+
+  // Fetch wallet address from the database
+  const userWallet = await pool.query(
+    "SELECT wallet_address FROM users WHERE id = $1",
+    [req.user.id]
+  );
+  const walletAddress = userWallet.rows[0]?.wallet_address;
+ 
+  console.log('Fetched Wallet Address:', walletAddress); // Check if wallet address is being fetched correctly
+
+  // If no wallet address, log and handle error
+  if (!walletAddress) {
+    console.error("No wallet address found for the user.");
+  }
+
+  // Render the page and pass walletAddress to the view
+  res.render('investment', {
+    user,
+    users: [user], // For navbar compatibility
+    walletAddress, // Pass walletAddress here
+    ongoing
+  });
 });
 
 
@@ -270,6 +346,12 @@ app.get('/history', async (req, res) => {
       ORDER BY created_at DESC
     `;
     const withdrawalResult = await pool.query(withdrawalQuery, [userId]);
+    const userWallet = await pool.query(
+      "SELECT wallet_address FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const walletAddress = userWallet.rows[0]?.wallet_address;
+   
     console.log("Withdrawal Result:", withdrawalResult.rows); // Debugging log
     console.log("Deposit Result:", depositResult.rows); // Debugging log
     // Normalize withdrawal status
@@ -282,7 +364,11 @@ app.get('/history', async (req, res) => {
     // Render the transaction history page with the normalized data
     res.render('history', {
       deposits,
-      withdrawals
+      withdrawals,
+      user: req.user,
+      users: [req.user],
+      walletAddress,
+
     });
   } catch (err) {
     console.error('Error fetching transaction history:', err);
@@ -296,26 +382,44 @@ app.get('/history', async (req, res) => {
 app.get("/dashboard", async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
+
     const userId = req.user.id;
+
     const { rows } = await pool.query(
-      "SELECT id, username, profit_balance, wallet_address,referral_balance FROM users WHERE id = $1",
+      `SELECT id, username, profit_balance, wallet_address, coin_type, referral_balance, deposit_balance, profile_image,referral_code
+       FROM users WHERE id = $1`,
       [userId]
     );
-    console.log( { rows });
+    
+
+    const result = await pool.query(
+      'SELECT * FROM investments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC',
+      [userId, 'active']
+    );
     if (rows.length === 0) return res.redirect("/login");
 
-    
-    const referrals = await pool.query("SELECT COUNT(*) FROM referrals WHERE referrer_id = $1", [userId]);
+    const currentUser = rows[0]; // ✅ FIX: Define currentUser
+    const ongoing = result.rows;
+    const referrals = await pool.query(
+      "SELECT COUNT(*) FROM referrals WHERE referrer_id = $1",
+      [userId]
+    );
+
     const totalReferrals = referrals.rows[0].count;
-    
-    const referralLink = `${req.protocol}://${req.get('host')}/register?ref=${req.user.username}`;
+
+    const referralLink = `${req.protocol}://${req.get("host")}/register?ref=${currentUser.referral_code}`;
 
     res.render("index.ejs", {
-      userId: rows[0].id, // Pass userId to EJS
-      users: rows,
+      user: currentUser, // ✅ FIXED: Now defined
+      userId: currentUser.id,
+      users: rows, // This is still an array, used for looping in EJS
       seedPhraseAccepted: req.session.seedPhraseAccepted || false,
-      walletAddress: rows[0].wallet_address || "",
-      totalReferrals, referralLink,
+      walletAddress: currentUser.wallet_address || "",
+      coinType: currentUser.coin_type || "",
+      totalReferrals,
+      referralLink,
+      depositBalance: currentUser.deposit_balance || 0,
+      ongoing,
     });
   } catch (error) {
     console.error("Error fetching users:", error);
@@ -323,25 +427,39 @@ app.get("/dashboard", async (req, res) => {
   }
 });
 
+
+
 // GET /register
 app.get('/register', async (req, res) => {
-  const referralCode = req.query.ref || null;
+  const referralCode = req.query.ref || req.cookies.ref || null;
   let referrerUsername = null;
 
   if (referralCode) {
-    // assuming you store referral codes in users table
-    const referrer = await pool.query('SELECT username FROM users WHERE referral_code = $1', [referralCode]);
-
-    if (referrer.rows.length > 0) {
-      referrerUsername = referrer.rows[0].username;
+    try {
+      const referrer = await pool.query(
+        'SELECT username FROM users WHERE referral_code = $1',
+        [referralCode]
+      );
+      
+      if (referrer.rows.length > 0) {
+        referrerUsername = referrer.rows[0].username;
+      }
+    } catch (err) {
+      console.error('Error checking referral code:', err);
     }
   }
 
+  // Always pass referralCode from cookie if missing in query
+  const fallbackReferralCode = referralCode || req.cookies.ref || null;
+
   res.render('register', {
-    referralCode,
-    referrerUsername
+    referralCode: fallbackReferralCode,
+    referrerUsername,
+    referralCode
   });
 });
+
+
 
 
 app.get("/settings", async (req, res) => {
@@ -352,14 +470,17 @@ app.get("/settings", async (req, res) => {
   try {
     const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
     const user = userResult.rows[0];
-
+    const walletAddress = user.wallet_address;
     const seedResult = await pool.query(
       "SELECT * FROM user_seed_phrases WHERE user_id = $1",
       [req.user.id]
     );
     const seed = seedResult.rows[0] || {};
 
-    res.render("settings", { user, seed }); // now passing both `user` and `seed`
+    res.render("settings", { user, seed,
+      users: [req.user],
+      walletAddress,
+     }); // now passing both `user` and `seed`
   } catch (err) {
     console.error("Error fetching user settings:", err);
     res.status(500).send("Server error");
@@ -379,9 +500,17 @@ app.get("/withdrawals", async (req, res) => {
       "SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
-
+    const userWallet = await pool.query(
+      "SELECT wallet_address FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const walletAddress = userWallet.rows[0]?.wallet_address;
     console.log( { rows }); // Debugging log
-    res.render("withdrawals.ejs", { withdrawals: rows });
+    res.render("withdrawals.ejs", { withdrawals: rows,
+      user: req.user,
+      users: [req.user],
+      walletAddress,
+     });
   } catch (error) {
     console.error("Error fetching withdrawal history:", error);
     res.status(500).send("Error fetching withdrawal history.");
@@ -396,8 +525,13 @@ app.get("/deposit",  async (req, res) => {
   try {
 
     const result = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);;
-    const userWallet = result.rows[0].wallet_address;
-    if (!userWallet) {
+    const userWallet = await pool.query(
+      'SELECT wallet_address, coin_type FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    const walletAddress = userWallet.rows[0]?.wallet_address;
+    const coinType = userWallet.rows[0]?.coin_type;
+    if (!walletAddress) {
       return res.send(
         `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
       );
@@ -409,8 +543,11 @@ app.get("/deposit",  async (req, res) => {
 
     res.render("deposit", {
       user: req.user,
-      userWallet, // 🟢 pass this to EJS
-      message// or a flash message if needed
+      walletAddress, // 🟢 pass this to EJS
+      message,// or a flash message if needed
+      users: [req.user],
+      coinType,
+      
   
     });
   } catch (error) {
@@ -447,21 +584,36 @@ app.get('/invest', async (req, res) => {
       'SELECT * FROM investments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC',
       [userId, 'active']
     );
-
+    const userWallet = await pool.query(
+      "SELECT wallet_address FROM users WHERE id = $1",
+      [req.user.id]
+    );
+    const walletAddress = userWallet.rows[0]?.wallet_address;
+    
     const ongoing = result.rows;
 
-    res.render('investment', { ongoing }); // ✅ PASS IT HERE
+    res.render('investment', { ongoing,
+      user: req.user,
+      walletAddress,
+      users: [req.user],
+     }); // ✅ PASS IT HERE
   } catch (error) {
     console.error('Error fetching ongoing investments:', error);
-    res.render('investment', { ongoing: [] }); // ✅ PASS EMPTY ARRAY AS FALLBACK
+    res.render('investment', { ongoing: [],
+      walletAddress,
+     }); // ✅ PASS EMPTY ARRAY AS FALLBACK
   }
 });
 
 
 
 app.get('/invest/:plan', async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login"); // Redirect to login if not authenticated
+  }
   const plan = req.params.plan;
-  const userId = req.user.id; // Make sure this is correct based on your session
+  const userId = req.user.id;
+  
 
   const userResult = await pool.query('SELECT profit_balance FROM users WHERE id = $1', [userId]);
   const profitBalance = userResult.rows[0]?.profit_balance || 0;
@@ -536,6 +688,9 @@ app.post("/submit-walletaddress", async (req, res) => {
 
   const userId = req.user.id; 
   const walletAddress = req.body.walletAddress; 
+  const coinType = req.body.coinType; // Get the coin type from the form
+  console.log("Coin Type:", coinType); // Debugging log
+  // Log the wallet address and user ID for debugging
 console.log("Wallet Address:", walletAddress); // Debugging log
   console.log("User ID:", userId); // Debugging log
   // Validate wallet address
@@ -544,14 +699,16 @@ console.log("Wallet Address:", walletAddress); // Debugging log
   }
 
   try {
-    await pool.query("UPDATE users SET wallet_address = $2 WHERE id = $1", [userId, walletAddress]);
-    
+    await pool.query(
+      'UPDATE users SET wallet_address = $1, coin_type = $2 WHERE id = $3',
+      [walletAddress, coinType, userId]
+    );
     console.log("Wallet address saved successfully!");
-    
     res.redirect("/insertSeedPhrase"); // Redirect instead of sending a response
-  } catch (error) {
-    console.error("Error saving wallet address:", error);
-    res.status(500).send("Error saving wallet address.");
+   
+  } catch (err) {
+    console.error("Error updating wallet address:", err);
+    res.status(500).send("Server error");
   }
 });
 
@@ -566,7 +723,7 @@ app.post("/disconnectWallet", async (req, res) => {
   try {
     // Remove wallet address from users table
     await pool.query("UPDATE users SET wallet_address = NULL WHERE id = $1", [userId]);
-
+    await pool.query("UPDATE users SET coin_type = NULL WHERE id = $1", [userId]);
     // Delete the user's seed phrase entry from user_seed_phrases table
     await pool.query("DELETE FROM user_seed_phrases WHERE user_id = $1", [userId]);
 
@@ -948,6 +1105,20 @@ app.post('/investment', async (req, res) => {
 
 
 
+app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const imagePath = '/uploads/profile/' + req.file.filename;
+
+    // Update user's profile image in DB
+    await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imagePath, userId]);
+
+    res.redirect("/dashboard");
+  } catch (err) {
+    console.error("Error uploading profile image:", err);
+    res.status(500).send("Failed to upload profile image.");
+  }
+});
 
 
 
@@ -1018,6 +1189,8 @@ app.post("/withdraw", async (req, res) => {
   }
 });
 
+
+
 app.post('/invest/:plan', async (req, res) => {
   const userId = req.user.id;
   const { amount } = req.body;
@@ -1025,7 +1198,7 @@ app.post('/invest/:plan', async (req, res) => {
   const investAmount = parseFloat(amount);
 
   const plans = {
-    basic: { min: 50, max: 500, percent: 5, duration: 7 }, // 7 days
+    basic: { min: 50, max: 500, percent: 5, duration: 7 },
     standard: { min: 501, max: 5000, percent: 10, duration: 14 },
     premium: { min: 5001, max: Infinity, percent: 20, duration: 30 }
   };
@@ -1033,7 +1206,6 @@ app.post('/invest/:plan', async (req, res) => {
   const selectedPlan = plans[plan];
   if (!selectedPlan) return res.status(404).send('Invalid plan');
 
-  // Check if amount is valid
   if (investAmount < selectedPlan.min || investAmount > selectedPlan.max) {
     return res.render('invest-form', {
       planName: plan,
@@ -1043,8 +1215,9 @@ app.post('/invest/:plan', async (req, res) => {
     });
   }
 
-  const userRes = await pool.query('SELECT profit_balance FROM users WHERE id = $1', [userId]);
-  const profitBalance = userRes.rows[0].profit_balance;
+  const userRes = await pool.query('SELECT email, username, profit_balance FROM users WHERE id = $1', [userId]);
+  const user = userRes.rows[0];
+  const profitBalance = user.profit_balance;
 
   if (investAmount > profitBalance) {
     return res.render('invest-form', {
@@ -1060,7 +1233,6 @@ app.post('/invest/:plan', async (req, res) => {
   const matureAt = new Date();
   matureAt.setDate(createdAt.getDate() + selectedPlan.duration);
 
-  // Deduct balance and create investment
   await pool.query('UPDATE users SET profit_balance = profit_balance - $1 WHERE id = $2', [investAmount, userId]);
 
   await pool.query(`
@@ -1068,8 +1240,49 @@ app.post('/invest/:plan', async (req, res) => {
     VALUES ($1, $2, $3, $4, $5, $6, 'active')
   `, [userId, plan, investAmount, expectedProfit, createdAt, matureAt]);
 
+  console.log("Investment created successfully! with amount:", investAmount);
+
+  // ✅ Send Email to User and Admin
+  
+
+  const userMailOptions = {
+    from: 'abanakosisochukwu03@gmail.com',
+    to: user.email,
+    subject: 'Investment Confirmation',
+    html: `
+      <h3>Hi ${user.username},</h3>
+      <p>You've successfully invested <strong>$${investAmount.toFixed(2)}</strong> in the <strong>${plan.toUpperCase()}</strong> plan.</p>
+      <p>Expected Profit: <strong>$${expectedProfit.toFixed(2)}</strong></p>
+      <p>Duration: <strong>${selectedPlan.duration} days</strong></p>
+      <p>Thank you for investing with us!</p>
+    `
+  };
+
+  const adminMailOptions = {
+    from: 'abanakosisochukwu03@gmail.com',
+    to: 'abanakosisochukwu03@gmail.com', // Replace with your admin's email
+    subject: `New Investment by ${user.username}`,
+    html: `
+      <h3>New Investment Alert</h3>
+      <p>User: <strong>${user.username}</strong> (${user.email})</p>
+      <p>Plan: <strong>${plan.toUpperCase()}</strong></p>
+      <p>Amount: <strong>$${investAmount.toFixed(2)}</strong></p>
+      <p>Expected Profit: <strong>$${expectedProfit.toFixed(2)}</strong></p>
+      <p>Duration: ${selectedPlan.duration} days</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(userMailOptions);
+    await transporter.sendMail(adminMailOptions);
+    console.log("Confirmation emails sent successfully.");
+  } catch (err) {
+    console.error("Email sending error:", err);
+  }
+
   res.redirect('/dashboard');
 });
+
 
 
 
@@ -1119,19 +1332,23 @@ app.post("/forgotpassword", async (req, res, next) => {
 });
 
 app.post("/register", async (req, res, next) => {
-  const { email, confirmPassword, phoneNumber, username, country, fullname } = req.body;
-  const referralCodeFromCookie = req.cookies.ref; // This is the code like "mrjones200"
+  const { email, confirmPassword, phoneNumber, username, country, fullname, referralCode } = req.body;
 
+  const referralCodeFromCookie = req.cookies.ref;
+
+  // ✅ Generate a unique referral code for the new user
   const generateReferralCode = (username) => username.toLowerCase() + Math.floor(100 + Math.random() * 900);
   const newReferralCode = generateReferralCode(username);
 
   try {
+    // ✅ Check if user already exists
     const userExists = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
     if (userExists.rows.length > 0) return res.send("Email already exists.");
 
+    // ✅ Hash the password
     const hashedPassword = await bcrypt.hash(confirmPassword, saltRounds);
 
-    // Create new user and assign them a referral code
+    // ✅ Insert new user with generated referral code
     const result = await pool.query(
       `INSERT INTO users (fullname, username, email, password, phoneNumber, country, referral_code)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -1141,27 +1358,26 @@ app.post("/register", async (req, res, next) => {
 
     const newUser = result.rows[0];
 
-    // ✅ If they came through a referral link
-    if (referralCodeFromCookie) {
+    // ✅ If user was referred, reward the referrer
+    if (referralCode) {
       const referrerResult = await pool.query(
         'SELECT id FROM users WHERE referral_code = $1',
-        [referralCodeFromCookie]
+        [referralCode]
       );
 
       if (referrerResult.rows.length > 0) {
         const referrerId = referrerResult.rows[0].id;
 
-        // 1. Save referral relationship
+        // Save the referral relationship
         await pool.query(
           'INSERT INTO referrals (referrer_id, referred_id) VALUES ($1, $2)',
           [referrerId, newUser.id]
         );
 
-        // 2. ✅ Reward the referrer ($20 in this case)
-        const rewardAmount = 20;
+        // Reward the referrer
         await pool.query(
           'UPDATE users SET referral_balance = referral_balance + $1 WHERE id = $2',
-          [rewardAmount, referrerId]
+          [20, referrerId]
         );
 
         console.log("Referral reward sent to referrer:", referrerId);
@@ -1170,6 +1386,7 @@ app.post("/register", async (req, res, next) => {
       }
     }
 
+    // ✅ Log in the new user
     req.login(newUser, (err) => {
       if (err) return next(err);
       return res.redirect("/dashboard");
@@ -1180,6 +1397,7 @@ app.post("/register", async (req, res, next) => {
     res.status(500).send("Error registering user");
   }
 });
+
 
 
 

