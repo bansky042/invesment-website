@@ -1,136 +1,139 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
 
+  <!-- Inline Styles -->
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        @media (max-width: 768px){
-            /*login page*/
-        
-        .container2{
-            left: 0% !important;
-            height: 450px !important;
-        }
-        
-        .container-text{
-            margin-left: 60px !important;
-        }
-        
-        .form-control{
-            margin-bottom: 20px !important;
-        }
-        
-        .btn{
-            margin-bottom: 10px !important;
-        }
-        
-        .Pricingsection-card{
-            width: 280px !important;
-         }
-        
-        }
-        
-        
-        .container{
-            text-align: center !important;
-            display: block;
-            position: relative;
-        }
-        
-        .container-text{
-            margin-top: 70px;
-            text-align: center !important;
-          
-        }
-        
-        .container-text h2{
-            font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-            font-size: 40px;
-            font-weight: 700;
-            text-align: center !important;
-            
-        }
-        
-        
-        .container2{
-            width: 500px;
-            height: 400px;
-            position: absolute;
-            top: 120%;
-            left: 32%;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-        }
-        
-        .form-group{
-            display: block;
-            width: 80px;
-            padding-left: 10px;
-            margin-top: 30px;
-        }
-        
-        .form-control{
-            height: 25px;
-            width: 430px;
-            margin-left: 20px;
-            border: none;
-            border-bottom: 2px black solid;
-            padding-left: 8px;
-            transition: 0.4s;
-        }
-        
-        .btn{
-            padding: 10px 20px;
-            background-color:navy;
-            color: aliceblue;
-            border: none;
-            border-radius: 10px;
-            margin-top: 60px;
-            transition: 0.4s;
-        }
-        
-        .form-control:hover{
-           background-color: navy;
-            color: white;
-        }
-        .form-control:active{
-            background-color: red;
-            border: 1px white solid;
-        }
-        .btn:hover{
-            background-color: red;
-        }
-        
-        
-    </style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f7fc;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 30px;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .container h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .container p {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-control:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      background-color: navy;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: red;
+    }
+
+    .forgot-password {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .forgot-password a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        margin: 50px 20px;
+        padding: 25px;
+      }
+
+      .container h2 {
+        font-size: 24px;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container">
+    <!-- Title -->
+    <h2>LOGIN</h2>
+    <p>Don't have an account? <a href="/register">Register</a></p>
 
-<div class="container">
-  <div class="container-text col-md-12">
-<h2>LOGIN</h2>
-<p>Don't have an account? <a href="/register">Register</a></p>
-</div>
+    <!-- Login Form -->
+    <form action="/login" method="POST">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="username">Email</label>
+        <input type="email" class="form-control" name="username" placeholder="Enter your email address" required />
+      </div>
 
-<div class="container2">
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" name="password" placeholder="Enter your password" required />
+      </div>
 
-<form action="/login" method="POST">
-  <div class="form-group col-md-12">
-    <label for="email">Email</label>
-    <input type="email" class="form-control" name="username" placeholder="enter your email address">
+      <!-- Submit Button -->
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    <!-- Forgot Password Link -->
+    <div class="forgot-password">
+      <p>Forgotten your password? <a href="/forgottenpassword">Reset Password</a></p>
+    </div>
   </div>
-  <div class="form-group col-md-12">
-    <label for="password">Password</label>
-    <input type="password" class="form-control" name="password" placeholder="enter your password">
-  </div>
-  <button type="submit" class="btn btn-dark">Login</button>
-</form>
-<p>forgotten your password? <a href="/forgottenpassword">Forget Password</a></p>
-</div>
-</div>
-
 </body>
 </html>

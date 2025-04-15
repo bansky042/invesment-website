@@ -55,7 +55,7 @@
 <body>
   <div class="form-box">
     <h2>Invest in <%= planName.charAt(0).toUpperCase() + planName.slice(1) %> Plan</h2>
-<p>Your available profit balance: <strong>$<%= profitBalance %></strong></p>
+<p>Your available deposit balance: <strong>$<%= depositBalance %></strong></p>
  <p>Min: $<%= planDetails.min %> | Max: $<%= planDetails.max === Infinity ? '∞' : planDetails.max %></p>
     <p>Profit: <%= planDetails.percent %>%</p>
     <form action="/invest/<%= planName %>" method="POST" onsubmit="return validateAmount()">
@@ -63,8 +63,16 @@
       <button type="submit">Start Investment</button>
     </form>
     <% if (message) { %>
-      <div class="message"><%= message %></div>
+      <div id="statusMessage" class="message text-green-600">
+        <%= message %>
+      </div>
+      <script>
+        setTimeout(() => {
+          window.location.href = '/invest';
+        }, 4000);
+      </script>
     <% } %>
+
   </div>
 </body>
 </html>

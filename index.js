@@ -93,7 +93,7 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: "abanakosisochukwu03@gmail.com",
-    pass: "ikvl qmcm zboc pgba",
+    pass: "lkwe ehad ybwd kcbg",
   },
 });
 
@@ -347,11 +347,12 @@ app.get('/history', async (req, res) => {
     `;
     const withdrawalResult = await pool.query(withdrawalQuery, [userId]);
     const userWallet = await pool.query(
-      "SELECT wallet_address FROM users WHERE id = $1",
+      "SELECT wallet_address,coin_type FROM users WHERE id = $1",
       [req.user.id]
     );
     const walletAddress = userWallet.rows[0]?.wallet_address;
-   
+   const coinType = userWallet.rows[0]?.coin_type;
+   console.log("Coin Type:", coinType); // Debugging log
     console.log("Withdrawal Result:", withdrawalResult.rows); // Debugging log
     console.log("Deposit Result:", depositResult.rows); // Debugging log
     // Normalize withdrawal status
@@ -368,7 +369,7 @@ app.get('/history', async (req, res) => {
       user: req.user,
       users: [req.user],
       walletAddress,
-
+      coinType,
     });
   } catch (err) {
     console.error('Error fetching transaction history:', err);
@@ -585,22 +586,24 @@ app.get('/invest', async (req, res) => {
       [userId, 'active']
     );
     const userWallet = await pool.query(
-      "SELECT wallet_address FROM users WHERE id = $1",
+      "SELECT wallet_address,coin_type FROM users WHERE id = $1",
       [req.user.id]
     );
     const walletAddress = userWallet.rows[0]?.wallet_address;
-    
+    const coinType = userWallet.rows[0]?.coin_type;
     const ongoing = result.rows;
 
     res.render('investment', { ongoing,
       user: req.user,
       walletAddress,
       users: [req.user],
+      coinType,
      }); // ✅ PASS IT HERE
   } catch (error) {
     console.error('Error fetching ongoing investments:', error);
     res.render('investment', { ongoing: [],
       walletAddress,
+      coinType,
      }); // ✅ PASS EMPTY ARRAY AS FALLBACK
   }
 });
@@ -615,13 +618,13 @@ app.get('/invest/:plan', async (req, res) => {
   const userId = req.user.id;
   
 
-  const userResult = await pool.query('SELECT profit_balance FROM users WHERE id = $1', [userId]);
-  const profitBalance = userResult.rows[0]?.profit_balance || 0;
+  const userResult = await pool.query('SELECT deposit_balance FROM users WHERE id = $1', [userId]);
+  const depositBalance = userResult.rows[0]?.deposit_balance || 0;
 
   const plans = {
-    basic: { min: 50, max: 500, percent: 5 },
-    standard: { min: 501, max: 5000, percent: 10 },
-    premium: { min: 5001, max: Infinity, percent: 20 }
+    basic: { min: 50, max: 500, percent: 40 },
+    standard: { min: 550, max: 5000, percent: 75 },
+    premium: { min: 5050, max: Infinity, percent: 100 }
   };
 
   const selectedPlan = plans[plan];
@@ -630,7 +633,7 @@ app.get('/invest/:plan', async (req, res) => {
     return res.status(404).send('Plan not found');
   }
 
-  if (profitBalance < selectedPlan.min) {
+  if (depositBalance < selectedPlan.min) {
     return res.render('investment', {
       ongoing: [],
       message: `Insufficient balance for ${plan} plan. You need at least $${selectedPlan.min}.`
@@ -640,7 +643,7 @@ app.get('/invest/:plan', async (req, res) => {
   res.render('invest-form', {
     planName: plan,
     planDetails: selectedPlan,
-    profitBalance,
+    depositBalance,
     message: null
   });
 });
@@ -768,14 +771,7 @@ app.post("/forgottenpassword", async (req, res) => {
   console.log(`OTP stored in database for ${email}`); // Additional debugging
 
   // Send OTP via email
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: "abanakosisochukwu03@gmail.com",
-      pass: "ikvl qmcm zboc pgba",
-    },
-  });
-
+  
   const mailOptions = {
     from: "abanakosisochukwu03@gmail.com",
     to: email,
@@ -856,56 +852,81 @@ app.post("/update-settings", async (req, res) => {
 });
 
 
-app.post("/deposit",isLoggedIn, upload.single("payment_proof"), async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect to login if not authenticated
-  }
+app.post("/deposit", isLoggedIn, upload.single("payment_proof"), async (req, res) => {
+  if (!req.isAuthenticated()) return res.redirect("/login");
+
   const { amount } = req.body;
   const userId = req.user.id;
   const paymentProof = req.file ? req.file.filename : null;
 
+  if (!amount || !paymentProof) {
+    return res.status(400).render("deposit", {
+      user: req.user,
+      walletAddress: req.user.wallet_address,
+      coinType: req.user.coin_type,
+      message: "All fields are required."
+    });
+  }
+
   try {
-    // Store deposit in DB
+    // Save deposit to DB
     await pool.query(
       "INSERT INTO deposits (user_id, amount, payment_proof) VALUES ($1, $2, $3)",
       [userId, amount, paymentProof]
     );
 
-    const user = await pool.query( "SELECT username, email FROM users WHERE id = $1",
+    // Fetch user info for email & rendering
+    const userResult = await pool.query(
+      "SELECT username, email, wallet_address, coin_type, deposit_balance FROM users WHERE id = $1",
       [userId]
-    )
-    const result = user.rows[0];
+    );
+    const user = userResult.rows[0];
 
-    // Email content
+    // Email configuration
     const mailOptions = {
       from: "abanakosisochukwu03@gmail.com",
-      to: adminEmail,
-      subject: "🚨 New Withdrawal Request",
+      to: adminEmail, // ensure this is defined
+      subject: "🚨 New Deposit Request",
       html: `
         <h3>Deposit Alert 🚀</h3>
-        <p><strong>User:</strong> ${result.username} (${result.email})</p>
+        <p><strong>User:</strong> ${user.username} (${user.email})</p>
         <p><strong>Deposit Amount:</strong> ₦${amount}</p>
         <p><strong>User ID:</strong> ${userId}</p>
         <p>Please review and process the deposit request.</p>
       `,
     };
 
-    // Send email
+    // Send admin email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error sending admin email:", error);
-        return res.status(500).send("Deposit submitted, but failed to notify admin.");
+        return res.render("deposit", {
+          user,
+          walletAddress: user.wallet_address,
+          coinType: user.coin_type,
+          message: "Deposit submitted, but failed to notify admin."
+        });
       }
+
       console.log("Admin notified:", info.response);
-      res.send("Deposit request submitted successfully. Admin has been notified.");
+      return res.render("deposit", {
+        user,
+        walletAddress: user.wallet_address,
+        coinType: user.coin_type,
+        message: "Deposit request submitted successfully! Redirecting to dashboard..."
+      });
     });
-    req.session.message = "Deposit request submitted successfully!";
   } catch (error) {
     console.error("Deposit Error:", error);
-    req.session.message = "Failed to submit deposit request. Please try again.";
-    res.status(500).send("Server Error");
+    return res.status(500).render("deposit", {
+      user: req.user,
+      walletAddress: req.user.wallet_address,
+      coinType: req.user.coin_type,
+      message: "Server error. Please try again."
+    });
   }
 });
+
 
 
 
@@ -1026,11 +1047,11 @@ app.post('/admin/deposits/:id/approve', async (req, res) => {
     await pool.query('UPDATE deposits SET status = $1 WHERE id = $2', ['successful', depositId]);
 
     // Optionally: Increase user's balance
-    await pool.query('UPDATE users SET profit_balance = profit_balance + $1 WHERE id = $2', [
+    await pool.query('UPDATE users SET deposit_balance = deposit_balance + $1 WHERE id = $2', [
       deposit.amount,
       deposit.user_id,
     ]);
-    console.log("Increased user's profit balance");
+    console.log("Increased user's deposit balance");
     // Fetch user details
     const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [deposit.user_id]);
     const user = userResult.rows[0];
@@ -1050,6 +1071,38 @@ app.post('/admin/deposits/:id/approve', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
+app.post('/admin/deposits/:id/reject', async (req, res) => {
+  const depositId = req.params.id;
+  try {
+    // Update withdrawal status to 'failed'
+    await pool.query('UPDATE deposits SET status = $1 WHERE id = $2', ['failed', depositId]);
+
+    // Fetch the withdrawal details
+    const depositResult = await pool.query('SELECT * FROM deposits WHERE id = $1', [depositId]);
+    const deposit = depositResult.rows[0];
+
+    // Fetch the user details for email
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [deposit.user_id]);
+    const user = userResult.rows[0];
+
+    // Send Rejection Email
+    await transporter.sendMail({
+      from: 'abanakosisochukwu03@gmail.com',
+      to: user.email,
+      subject: 'deposit Rejected',
+      text: `Hello ${user.fullname}, your deposit request of $${deposit.amount} has been rejected.`,
+    });
+
+    // Respond with a JSON object (for AJAX) or redirect (for traditional page)
+    res.redirect('/admin/deposits');
+    // Alternatively: res.redirect('/admin/deposit');
+  } catch (error) {
+    console.error('Error rejecting deposit:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
 
 
 
@@ -1132,36 +1185,40 @@ app.post("/withdraw", async (req, res) => {
   const userId = req.user.id;
 
   if (!accountNumber || !cryptoType || !amount) {
-    return res.status(400).send("All fields are required.");
+    return res.status(400).render("withdraw", {
+      user: req.user,
+      walletAddress: req.user.wallet_address,
+      coinType: req.user.coin_type,
+      message: "All fields are required.",
+    });
   }
 
   try {
-    // Save withdrawal request to database
+    // Save withdrawal to DB
     await pool.query(
       "INSERT INTO withdrawals (user_id, account_number, bank_name, amount) VALUES ($1, $2, $3, $4)",
       [userId, accountNumber, cryptoType, amount]
     );
 
-    // Fetch user's email and username for more detail in the email
+    // Get user info
     const userResult = await pool.query(
-      "SELECT username, email FROM users WHERE id = $1",
+      "SELECT username, email, wallet_address, coin_type, profit_balance FROM users WHERE id = $1",
       [userId]
     );
     const user = userResult.rows[0];
 
-    // Setup Nodemailer transporter
+    // Setup Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
         user: "abanakosisochukwu03@gmail.com",
-        pass: "ikvl qmcm zboc pgba", // Use environment variables in production
+        pass: "ikvl qmcm zboc pgba", // ✅ Use env variables in production
       },
     });
 
-    // Email content
     const mailOptions = {
       from: "abanakosisochukwu03@gmail.com",
-      to: adminEmail,
+      to: adminEmail, // Make sure adminEmail is defined
       subject: "🚨 New Withdrawal Request",
       html: `
         <h3>Withdrawal Alert 🚀</h3>
@@ -1174,113 +1231,145 @@ app.post("/withdraw", async (req, res) => {
       `,
     };
 
-    // Send email
+    // Send email to admin
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.error("Error sending admin email:", error);
-        return res.status(500).send("Withdrawal submitted, but failed to notify admin.");
+        console.error("Error sending email:", error);
+        return res.render("withdraw", {
+          user,
+          walletAddress: user.wallet_address,
+          coinType: user.coin_type,
+          message: "Withdrawal submitted, but failed to notify admin.",
+        });
       }
+
       console.log("Admin notified:", info.response);
-      res.send("Withdrawal request submitted successfully. Admin has been notified.");
+      return res.render("withdraw", {
+        user,
+        walletAddress: user.wallet_address,
+        coinType: user.coin_type,
+        message: "Withdrawal request submitted successfully. Redirecting to dashboard...",
+      });
     });
   } catch (error) {
     console.error("Error processing withdrawal:", error);
-    res.status(500).send("Error processing withdrawal.");
+    res.status(500).render("withdraw", {
+      user: req.user,
+      walletAddress: req.user.wallet_address,
+      coinType: req.user.coin_type,
+      message: "Error processing withdrawal.",
+    });
   }
 });
-
-
 
 app.post('/invest/:plan', async (req, res) => {
   const userId = req.user.id;
   const { amount } = req.body;
-  const plan = req.params.plan;
+  const plan = req.params.plan.toLowerCase();
   const investAmount = parseFloat(amount);
 
+  // Plan definitions
   const plans = {
-    basic: { min: 50, max: 500, percent: 5, duration: 7 },
-    standard: { min: 501, max: 5000, percent: 10, duration: 14 },
-    premium: { min: 5001, max: Infinity, percent: 20, duration: 30 }
+    basic: { min: 50, max: 500, percent: 50, duration: 14 },
+    standard: { min: 550, max: 5000, percent: 75, duration: 21 },
+    premium: { min: 5050, max: Infinity, percent: 100, duration: 30 }
   };
 
   const selectedPlan = plans[plan];
-  if (!selectedPlan) return res.status(404).send('Invalid plan');
+  if (!selectedPlan) return res.status(404).send('Invalid investment plan.');
 
   if (investAmount < selectedPlan.min || investAmount > selectedPlan.max) {
     return res.render('invest-form', {
       planName: plan,
       planDetails: selectedPlan,
-      profitBalance: 0,
-      message: 'Invalid amount for selected plan.'
+      message: `Amount must be between $${selectedPlan.min} and $${selectedPlan.max}`,
+      profitBalance: req.user.deposit_balance
     });
   }
-
-  const userRes = await pool.query('SELECT email, username, profit_balance FROM users WHERE id = $1', [userId]);
-  const user = userRes.rows[0];
-  const profitBalance = user.profit_balance;
-
-  if (investAmount > profitBalance) {
-    return res.render('invest-form', {
-      planName: plan,
-      planDetails: selectedPlan,
-      profitBalance,
-      message: 'Insufficient profit balance.'
-    });
-  }
-
-  const expectedProfit = investAmount * (selectedPlan.percent / 100);
-  const createdAt = new Date();
-  const matureAt = new Date();
-  matureAt.setDate(createdAt.getDate() + selectedPlan.duration);
-
-  await pool.query('UPDATE users SET profit_balance = profit_balance - $1 WHERE id = $2', [investAmount, userId]);
-
-  await pool.query(`
-    INSERT INTO investments (user_id, plan, amount, expected_profit, created_at, mature_at, status)
-    VALUES ($1, $2, $3, $4, $5, $6, 'active')
-  `, [userId, plan, investAmount, expectedProfit, createdAt, matureAt]);
-
-  console.log("Investment created successfully! with amount:", investAmount);
-
-  // ✅ Send Email to User and Admin
-  
-
-  const userMailOptions = {
-    from: 'abanakosisochukwu03@gmail.com',
-    to: user.email,
-    subject: 'Investment Confirmation',
-    html: `
-      <h3>Hi ${user.username},</h3>
-      <p>You've successfully invested <strong>$${investAmount.toFixed(2)}</strong> in the <strong>${plan.toUpperCase()}</strong> plan.</p>
-      <p>Expected Profit: <strong>$${expectedProfit.toFixed(2)}</strong></p>
-      <p>Duration: <strong>${selectedPlan.duration} days</strong></p>
-      <p>Thank you for investing with us!</p>
-    `
-  };
-
-  const adminMailOptions = {
-    from: 'abanakosisochukwu03@gmail.com',
-    to: 'abanakosisochukwu03@gmail.com', // Replace with your admin's email
-    subject: `New Investment by ${user.username}`,
-    html: `
-      <h3>New Investment Alert</h3>
-      <p>User: <strong>${user.username}</strong> (${user.email})</p>
-      <p>Plan: <strong>${plan.toUpperCase()}</strong></p>
-      <p>Amount: <strong>$${investAmount.toFixed(2)}</strong></p>
-      <p>Expected Profit: <strong>$${expectedProfit.toFixed(2)}</strong></p>
-      <p>Duration: ${selectedPlan.duration} days</p>
-    `
-  };
 
   try {
-    await transporter.sendMail(userMailOptions);
-    await transporter.sendMail(adminMailOptions);
-    console.log("Confirmation emails sent successfully.");
-  } catch (err) {
-    console.error("Email sending error:", err);
-  }
+    // Fetch user details
+    const userRes = await pool.query(
+      'SELECT email, username, deposit_balance, wallet_address, coin_type, profit_balance FROM users WHERE id = $1',
+      [userId]
+    );
+    const user = userRes.rows[0];
 
-  res.redirect('/dashboard');
+    if (investAmount > parseFloat(user.deposit_balance)) {
+      return res.render('invest-form', {
+        planName: plan,
+        planDetails: selectedPlan,
+        profitBalance: user.deposit_balance,
+        message: 'Insufficient deposit balance.'
+      });
+    }
+
+    // Calculate profit & timing
+    const expectedProfit = investAmount * (selectedPlan.percent / 100);
+    const totalReturn = investAmount + expectedProfit;
+    const createdAt = new Date();
+    const matureAt = new Date();
+    matureAt.setDate(createdAt.getDate() + selectedPlan.duration);
+
+    // Update balances
+    await pool.query(
+      'UPDATE users SET deposit_balance = deposit_balance - $1 WHERE id = $2',
+      [investAmount, userId]
+    );
+
+    // Save investment
+    await pool.query(`
+      INSERT INTO investments (user_id, plan, amount, expected_profit, total_return, created_at, mature_at, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+    `, [userId, plan, investAmount, expectedProfit, totalReturn, createdAt, matureAt]);
+
+    // Email user and admin
+    const mailOptionsUser = {
+      from: 'abanakosisochukwu03@gmail.com',
+      to: user.email,
+      subject: 'Investment Confirmation',
+      html: `
+        <h3>Hi ${user.username},</h3>
+        <p>You've successfully invested <strong>$${investAmount}</strong> in the <strong>${plan.toUpperCase()}</strong> plan.</p>
+        <p>Expected Profit: <strong>$${expectedProfit.toFixed(2)}</strong></p>
+        <p>Duration: <strong>${selectedPlan.duration} days</strong></p>
+      `
+    };
+
+    const mailOptionsAdmin = {
+      from: 'abanakosisochukwu03@gmail.com',
+      to: 'abanakosisochukwu03@gmail.com',
+      subject: `📥 New Investment: ${user.username}`,
+      html: `
+        <h3>New Investment Alert</h3>
+        <p><strong>User:</strong> ${user.username} (${user.email})</p>
+        <p><strong>Plan:</strong> ${plan.toUpperCase()}</p>
+        <p><strong>Amount:</strong> $${investAmount}</p>
+        <p><strong>Expected Profit:</strong> $${expectedProfit}</p>
+        <p><strong>Duration:</strong> ${selectedPlan.duration} days</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptionsUser);
+    await transporter.sendMail(mailOptionsAdmin);
+
+    console.log(`✔️ Investment by ${user.username} recorded successfully.`);
+
+    res.render('invest-form', {
+      planName: plan,
+      planDetails: selectedPlan,
+      depositBalance: user.deposit_balance,
+      message: "Investment successful! Your profit will be credited at maturity."
+    });
+  } catch (err) {
+    console.error("Investment error:", err);
+    res.status(500).render('invest-form', {
+      planName: plan,
+      planDetails: plans[plan],
+      depositBalance: req.user.deposit_balance,
+      message: "Server error during investment."
+    });
+  }
 });
 
 

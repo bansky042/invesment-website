@@ -125,7 +125,7 @@
 </head>
 <body>
  
-  <%- include('partials/navbar', { walletAddress }) %>
+  <%- include('partials/navbar', { walletAddress, coinType }) %>
   <!-- Temporarily try without passing walletAddress -->
 
 
@@ -134,21 +134,21 @@
     <div class="plan-card">
       <div class="plan-title">Basic Plan</div>
       <div class="plan-amount">Min: $50 | Max: $500</div>
-      <div class="plan-percent">+5% Return</div>
+      <div class="plan-percent">+40% Return</div>
       <button class="button btn" onclick="startPlan('basic')">Start Now</button>
     </div>
 
     <div class="plan-card">
       <div class="plan-title">Standard Plan</div>
-      <div class="plan-amount">Min: $501 | Max: $5000</div>
-      <div class="plan-percent">+10% Return</div>
+      <div class="plan-amount">Min: $550 | Max: $5000</div>
+      <div class="plan-percent">+75% Return</div>
       <button class="button btn" onclick="startPlan('standard')">Start Now</button>
     </div>
 
     <div class="plan-card">
       <div class="plan-title">Premium Plan</div>
-      <div class="plan-amount">Min: $5001 and above</div>
-      <div class="plan-percent">+20% Return</div>
+      <div class="plan-amount">Min: $5050 and above</div>
+      <div class="plan-percent">+100% Return</div>
       <button class="button btn" onclick="startPlan('premium')">Start Now</button>
     </div>
   </div>

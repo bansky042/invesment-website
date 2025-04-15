@@ -67,12 +67,20 @@
   <div class="bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
     <h2 class="text-center text-2xl font-bold mb-2">Deposit Funds</h2>
     <h3 class="text-center text-xl mb-2">Welcome, <%= user.username %></h3>
-    <p class="text-center text-gray-600 mb-4">Your current wallet balance is: <strong>$<%= user.profit_balance %></strong></p>
+    <p class="text-center text-gray-600 mb-4">Your current wallet balance is: <strong>$<%= user.deposit_balance %></strong></p>
 
     <!-- Flash Message -->
     <% if (message) { %>
-      <p class="text-center mb-4 text-sm text-red-600"><%= message %></p>
+      <div id="statusMessage" class="text-center p-3 rounded bg-green-100 text-green-700 font-medium mb-4">
+        <%= message %>
+      </div>
+      <script>
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 5000);
+      </script>
     <% } %>
+    
 
     <!-- Wallet Status -->
     <% if (walletAddress) { %>
