@@ -103,11 +103,21 @@
 
           <div class="profit col-md-3 col-sm-6">
             <div class="bg-white shadow p-4 rounded h-100">
-              <h2 class="text-lg font-semibold">Deposit Balance</h2>
-              <p class="text-xl text-warning fw-bold">$ <%= depositBalance %></p>
-              <small class="text-muted">Available deposit balance</small>
+              <h2 class="text-lg font-semibold">KYC Status</h2>
+              <p class="text-xl fw-bold 
+                <%= user.kyc_status === 'verified' ? 'text-success' : 
+                    user.kyc_status === 'pending' ? 'text-warning' : 
+                    'text-danger' %>">
+                <%= user.kyc_status.charAt(0).toUpperCase() + user.kyc_status.slice(1) %>
+              </p>
+              <% if (user.kyc_status !== 'verified') { %>
+                <a href="/kyc" class="text-sm text-blue-600 hover:underline">Complete KYC</a>
+              <% } else { %>
+                <small class="text-muted">You are KYC verified</small>
+              <% } %>
             </div>
           </div>
+          
         </div>
 
         <!-- ✅ Investment Table Block -->

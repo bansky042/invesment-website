@@ -18,12 +18,12 @@
 
        
         <!-- Profile Section -->
-<form id="profileForm" action="/upload-profile" method="POST" enctype="multipart/form-data" class="flex flex-col items-center justify-center mt-2 mb-6 transition-all duration-300">
+<form id="profileForm" action="/upload-profile" method="POST" enctype="multipart/form-data" class="flex flex-col items-center justify-center mt-0 mb-6 transition-all duration-300">
   <label for="profileUpload" class="cursor-pointer">
     <img src="<%= user.profile_image%>" alt="User Avatar"
          class="rounded-full object-cover border-2 border-white transition-all duration-300"
          id="profileImage"
-         style="width: 48px; height: 48px;">
+         style="width: 50px; height: 50px;">
   </label>
   <input type="file" id="profileUpload" name="profileImage" accept="image/*" class="hidden" onchange="document.getElementById('profileForm').submit()">
   
@@ -36,7 +36,7 @@
 
 
         <!-- Menu Items -->
-        <div class="mt-4 flex flex-col gap-6 items-center" id="menuItems">
+        <div class="mt-2 flex flex-col gap-3 items-center" id="menuItems">
           <a href="#" id="Dashboard" class="flex items-center gap-3 w-full px-4">
             <i class="fas fa-tachometer-alt text-xl w-6 text-center"></i>
                <span class="ml-2 hidden">Dashboard</span>
@@ -58,6 +58,15 @@
             <i class="fas fa-chart-line text-xl w-6 text-center"></i>
             <span class="ml-2 hidden">Invest</span>
           </a>
+          <a href="/kyc" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-id-card text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">KYC</span>
+          </a>
+          <a href="/settings" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-cog text-xl w-6 text-center"></i>
+            <span class="ml-2 hidden">Settings</span>
+          </a>
+          
           <a href="/logout" class="flex items-center gap-3 w-full px-4">
             <i class="fas fa-sign-out-alt text-xl w-6 text-center"></i>
             <span class="ml-2 hidden">Logout</span>
@@ -81,9 +90,7 @@
             <button type="submit" class="btn btn-danger w-full">Disconnect</button>
           </form>
         <% } %>
-        <a href="/settings" class="text-white hover:text-gray-300">
-          <i class="fas fa-cog text-2xl"></i>
-        </a>
+       
       </div>
     </div>
   </div>
