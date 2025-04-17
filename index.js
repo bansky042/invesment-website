@@ -15,6 +15,8 @@ const cookieParser = require('cookie-parser');
 const flash = require("connect-flash");
 const cron = require("node-cron");
 const dotenv = require("dotenv");
+const { kycUpload, uploadProfile, depositUpload } = require('./cloudinary');
+
 
 dotenv.config();
 
@@ -26,49 +28,7 @@ function isLoggedIn(req, res, next) {
 }
 
 
-// cloudinary.js
-const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-const kycStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'kyc_uploads',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
-    public_id: (req, file) => `kyc-${req.user.id}-${Date.now()}`
-  },
-});
-
-const profileStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'profile_images',
-    allowed_formats: ['jpg', 'png', 'jpeg'],
-    public_id: (req, file) => `profile-${req.user.id}-${Date.now()}`
-  },
-});
-
-const depositStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'deposit_proofs',
-    allowed_formats: ['jpg', 'png', 'jpeg', 'pdf'],
-    public_id: (req, file) => `deposit-${req.user.id}-${Date.now()}`
-  },
-});
-
-module.exports = {
-  cloudinary,
-  kycUpload: multer({ storage: kycStorage }),
-  uploadProfile: multer({ storage: profileStorage }),
-  depositUpload: multer({ storage: depositStorage }),
-};
 
 
 
