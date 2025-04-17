@@ -2,77 +2,60 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTP Verification</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Custom style for background */
-        body {
-            background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url('../images/otp-background.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            min-height: 100vh;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OTP Verification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url('/images/otp-background.jpg');
+      background-size: cover;
+      background-repeat: no-repeat;
+      min-height: 100vh;
+    }
+  </style>
 </head>
 
 <body class="flex items-center justify-center">
-    <div class="container mx-auto max-w-md bg-white p-8 rounded-lg shadow-lg">
-        <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Enter OTP</h2>
+  <div class="container mx-auto max-w-md bg-white p-8 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-semibold text-center text-gray-800 mb-6">Enter OTP</h2>
 
-        <form id="otpForm" class="space-y-4">
-            <!-- Hidden input for email -->
-            <input type="hidden" name="email" value="<%= email %>" />
+    <!-- Form starts -->
+    <form action="/verify-otp" method="POST" class="space-y-4">
+      <!-- Hidden Email Field -->
+      <input type="hidden" name="email" value="<%= email %>" />
+    
+      <!-- OTP Input Field -->
+      <div>
+        <label for="otp" class="block text-sm font-medium text-gray-600">OTP</label>
+        <input
+          type="text"
+          name="otp"
+          id="otp"
+          placeholder="Enter OTP"
+          required
+          class="mt-2 p-3 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+    
+      <div>
+        <button
+          type="submit"
+          class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Verify
+        </button>
+      </div>
+    </form>
+    
 
-            <!-- OTP Input Field -->
-            <div>
-                <label for="otp" class="block text-sm font-medium text-gray-600">OTP</label>
-                <input type="text" name="otp" id="otp" placeholder="Enter OTP" required
-                    class="mt-2 p-3 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+    <!-- Optional error message from backend -->
+    <% if (typeof message !== "undefined") { %>
+      <div class="mt-4 text-red-500 text-center">
+        <p><%= message %></p>
+      </div>
+    <% } %>
 
-            <!-- Submit Button -->
-            <div>
-                <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    Verify
-                </button>
-            </div>
-
-        </form>
-
-        <!-- Error message placeholder -->
-        <div id="errorMessage" class="mt-4 text-red-500 text-center hidden">
-            <p>Invalid OTP. Please try again.</p>
-        </div>
-
-    </div>
-
-    <script>
-        document.getElementById("otpForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const response = await fetch("/verify-otp", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(Object.fromEntries(formData)),
-            });
-
-            if (response.ok) {
-                // Redirect to forgotpassword page on success
-                window.location.href = "/forgotpassword";
-            } else {
-                // Handle error (e.g., show an error message)
-                const errorMessage = await response.text();
-                const errorDiv = document.getElementById("errorMessage");
-                errorDiv.innerHTML = `<p>${errorMessage}</p>`;
-                errorDiv.classList.remove('hidden');
-            }
-        });
-    </script>
-
+  </div>
 </body>
-
 </html>

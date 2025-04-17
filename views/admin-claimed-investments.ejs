@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Claimed Investments</title>
+  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gray-100 p-8">
+  <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Claimed Investments</h2>
+    
+    <% if (message) { %>
+      <div class="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-center">
+        <%= message %>
+      </div>
+    <% } %>
+
+    <% if (investments.length > 0) { %>
+      <table class="w-full border mt-4">
+        <thead>
+          <tr class="bg-gray-200 text-left">
+            <th class="p-2">Investment ID</th>
+            <th class="p-2">User ID</th>
+            <th class="p-2">Total Return ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% investments.forEach(inv => { %>
+            <tr class="border-b">
+              <td class="p-2"><%= inv.id %></td>
+              <td class="p-2"><%= inv.user_id %></td>
+              <td class="p-2">
+                <%= inv.total_return ? parseFloat(inv.total_return).toFixed(2) : "0.00" %>
+              </td>
+              
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="text-center text-gray-500 mt-4">No matured investments were found.</p>
+    <% } %>
+
+    <div class="mt-6 text-center">
+      <a href="/admin/dashboard" class="text-blue-600 underline">← Back to Admin Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

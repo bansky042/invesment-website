@@ -13,6 +13,17 @@
 
   <!-- Page Styles -->
   <style>
+@media only screen  and (max-width: 594px) and (max-height: 1200px) {
+  .desposit-container{
+    width: 77% !important;
+    margin-left: 70px !important;
+  }
+
+}
+
+
+
+
     body {
       font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(to right, rgba(26, 0, 142, 0.7), rgba(129, 0, 0, 0.5)), url(../images/invest.jpg);
@@ -64,7 +75,7 @@
   <%- include("partials/navbar", { walletAddress,coinType }) %>
 
   <!-- Deposit Container -->
-  <div class="bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
+  <div class="desposit-container bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
     <h2 class="text-center text-2xl font-bold mb-2">Deposit Funds</h2>
     <h3 class="text-center text-xl mb-2">Welcome, <%= user.username %></h3>
     <p class="text-center text-gray-600 mb-4">Your current wallet balance is: <strong>$<%= user.deposit_balance %></strong></p>

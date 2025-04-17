@@ -13,6 +13,7 @@ const multer = require("multer");
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const flash = require("connect-flash");
+const cron = require("node-cron");
 
 
 
@@ -106,6 +107,44 @@ const pool = new Pool({
   port: process.env.POSTGRES_PORT || 5432,
 });
 
+// Run every hour (or adjust timing as needed)
+cron.schedule("0 * * * *", async () => {
+  console.log("⏳ Checking for matured investments...");
+
+  try {
+    // 1. Get all matured and active investments
+    const { rows: maturedInvestments } = await pool.query(
+      `SELECT * FROM investments 
+       WHERE mature_at <= NOW() AND status = 'active'`
+    );
+
+    for (const investment of maturedInvestments) {
+      const totalReturn = parseFloat(investment.total_return);
+      const userId = investment.user_id;
+
+      // 2. Update user's profit balance
+      await pool.query(
+        `UPDATE users 
+         SET profit_balance = profit_balance + $1 
+         WHERE id = $2`,
+        [totalReturn, userId]
+      );
+
+      // 3. Update investment status
+      await pool.query(
+        `UPDATE investments 
+         SET status = 'claimed' 
+         WHERE id = $1`,
+        [investment.id]
+      );
+
+      console.log(`💰 Investment ${investment.id} for user ${userId} matured and credited.`);
+    }
+  } catch (err) {
+    console.error("❌ Error processing matured investments:", err);
+  }
+});
+
 function requireKYCVerified(req, res, next) {
   if (req.user.kyc_status !== 'verified') {
     return res.render('kyc', {
@@ -158,6 +197,14 @@ app.use((req, res, next) => {
   }
   next();
 });
+function isAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user && req.user.is_admin === true) {
+    return next();
+  }
+  return res.status(403).send("Access Denied: Admins only.");
+}
+
+
 
 
 //const rewardReferral = async (referrerId) => {
@@ -232,14 +279,14 @@ app.get("/withdraw", async (req, res) => {
 });
 
 
-app.get('/admin/kyc-requests', async (req, res) => {
+app.get('/admin/kyc-requests', isAdmin, async (req, res) => {
   const result = await pool.query("SELECT id, username, email, kyc_status, kyc_document FROM users WHERE kyc_document IS NOT NULL");
   res.render('kyc-requests', { users: result.rows });
 });
 
 
 
-app.get("/admin/withdrawals", async (req, res) => {
+app.get("/admin/withdrawals", isAdmin, async (req, res) => {
   try {
     const withdrawals = await pool.query(`
       SELECT w.*, u.username 
@@ -255,7 +302,7 @@ app.get("/admin/withdrawals", async (req, res) => {
   }
 });
 
-app.get("/admin/deposits", async (req, res) => {
+app.get("/admin/deposits", isAdmin, async (req, res) => {
   try {
     const deposits = await pool.query(`
       SELECT d.*, u.username, u.email, u.fullname 
@@ -280,7 +327,7 @@ app.get("/admin/deposits", async (req, res) => {
 const uploadsDir = path.join(__dirname, 'uploads', 'deposits');
 
 // Custom route to serve uploaded files
-app.get('/admin/uploads/:filename', (req, res) => {
+app.get('/admin/uploads/:filename', isAdmin, (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(uploadsDir, filename);
 console.log("File path:", filePath); // Debugging log
@@ -1128,6 +1175,44 @@ app.post('/admin/deposits/:id/approve', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+// 🛠️ Manually claim matured investments (via route)
+app.get("/admin/claim-due-investments", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, user_id, total_return FROM investments
+      WHERE status = 'active' AND mature_at <= NOW()
+    `);
+
+    const claimedInvestments = [];
+
+    for (const invest of result.rows) {
+      await pool.query(
+        'UPDATE users SET profit_balance = profit_balance + $1 WHERE id = $2',
+        [invest.total_return, invest.user_id]
+      );
+
+      await pool.query(
+        'UPDATE investments SET status = $1 WHERE id = $2',
+        ['claimed', invest.id]
+      );
+
+      claimedInvestments.push(invest);
+    }
+
+    // ✅ Render EJS page with results
+    res.render("admin-claimed-investments", {
+      investments: claimedInvestments,
+      message: `${claimedInvestments.length} investment(s) claimed successfully.`
+    });
+
+  } catch (error) {
+    console.error("❌ Error claiming investments:", error);
+    res.status(500).render("admin-claimed-investments", {
+      investments: [],
+      message: "Error occurred while claiming matured investments."
+    });
+  }
+});
 
 app.post('/admin/deposits/:id/reject', async (req, res) => {
   const depositId = req.params.id;
@@ -1527,16 +1612,18 @@ app.post("/forgotpassword", async (req, res, next) => {
     res.status(500).send("Error updating password.");
   }
 });
-
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
 app.post("/register", async (req, res, next) => {
   const { email, confirmPassword, phoneNumber, username, country, fullname, referralCode } = req.body;
-
+   // ✅ Generate OTP and store with timestamp
+const otp = generateOTP(); // ✅ only one OTP
+const otpCreatedAt = new Date();
   const referralCodeFromCookie = req.cookies.ref;
 
   // ✅ Generate a unique referral code for the new user
   const generateReferralCode = (username) => username.toLowerCase() + Math.floor(100 + Math.random() * 900);
   const newReferralCode = generateReferralCode(username);
-
+  
   try {
     // ✅ Check if user already exists
     const userExists = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -1547,14 +1634,19 @@ app.post("/register", async (req, res, next) => {
 
     // ✅ Insert new user with generated referral code
     const result = await pool.query(
-      `INSERT INTO users (fullname, username, email, password, phoneNumber, country, referral_code)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [fullname, username, email, hashedPassword, phoneNumber, country, newReferralCode]
+      `INSERT INTO users (
+        fullname, username, email, password, phoneNumber, country, referral_code, otp_code, otp_created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *`,
+      [fullname, username, email, hashedPassword, phoneNumber, country, newReferralCode, otp, otpCreatedAt]
     );
+    
 
     const newUser = result.rows[0];
+    const userId = newUser.id;
 
+    req.session.tempUserId = userId;
     // ✅ If user was referred, reward the referrer
     if (referralCode) {
       const referrerResult = await pool.query(
@@ -1583,11 +1675,28 @@ app.post("/register", async (req, res, next) => {
       }
     }
 
-    // ✅ Log in the new user
-    req.login(newUser, (err) => {
-      if (err) return next(err);
-      return res.redirect("/dashboard");
-    });
+
+
+
+console.log("📨 Generated OTP:", otp); // ✅ log what will be used and sent
+
+await pool.query(
+  "UPDATE users SET otp_code = $1, otp_created_at = $2 WHERE id = $3",
+  [otp, otpCreatedAt, userId]
+);
+
+const mailOptions = {
+  from: "abanakosisochukwu03@gmail.com",
+  to: email,
+  subject: "Verify your account with OTP",
+  html: `<h3>Your OTP Code is: <strong>${otp}</strong></h3><p>It is valid for 5 minutes.</p>`
+};
+
+await transporter.sendMail(mailOptions);
+    req.session.tempUserId = newUser.id;
+
+
+    return res.render("verify-otp", { email: email, message: null });
 
   } catch (error) {
     console.error("Error registering user:", error);
@@ -1595,8 +1704,91 @@ app.post("/register", async (req, res, next) => {
   }
 });
 
+// Admin login page
+app.get('/admin/login', (req, res) => {
+  res.render('admin-login', { message: null });
+});
 
 
+app.get("/verify-otps", async (req, res) => {
+  const userId = req.session.tempUserId;
+  if (!userId) return res.redirect("/register");
+
+  const result = await pool.query("SELECT email FROM users WHERE id = $1", [userId]);
+  const user = result.rows[0];
+  res.render("verify-otp", { message: null, email: user?.email || "" });
+});
+
+
+app.post("/verify-otps", async (req, res) => {
+  const { otp } = req.body;
+  const userId = req.session.tempUserId;
+
+  if (!userId) return res.redirect("/register");
+
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [userId]);
+    const user = result.rows[0];
+
+    if (!user?.otp_code || !user.otp_created_at) {
+      return res.render("verify-otp", { message: "OTP not found or expired.", email: user?.email || "" });
+    }
+
+    const now = new Date();
+    const created = new Date(user.otp_created_at);
+    const isExpired = now - created > 5 * 60 * 1000;
+
+    const isMatch = otp.trim() === user.otp_code.trim();
+
+    console.log("🔐 Submitted:", otp, "| Stored:", user.otp_code);
+    console.log("⏳ Time diff (ms):", now - created);
+
+    if (!isExpired && isMatch) {
+      await pool.query("UPDATE users SET is_verified = true, otp_code = null, otp_created_at = null WHERE id = $1", [userId]);
+      req.login(user, (err) => {
+        if (err) return res.redirect("/login");
+        return res.redirect("/dashboard");
+      });
+    } else {
+      return res.render("verify-otp", { message: "Invalid or expired OTP.", email: user.email });
+    }
+  } catch (err) {
+    console.error("OTP verification error:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+
+
+app.post("/resend-otp", async (req, res) => {
+  const userId = req.session.tempUserId;
+  if (!userId) return res.redirect("/register");
+
+  try {
+    const otpCode = generateOTP();
+    const otpCreatedAt = new Date();
+
+    await pool.query("UPDATE users SET otp_code = $1, otp_created_at = $2 WHERE id = $3", [otpCode, otpCreatedAt, userId]);
+
+    const result = await pool.query("SELECT email FROM users WHERE id = $1", [userId]);
+    const email = result.rows[0].email;
+
+    console.log("📨 Resent OTP:", otpCode);
+
+    await transporter.sendMail({
+      from: "abanakosisochukwu03@gmail.com",
+      to: email,
+      subject: "Your new OTP code",
+      html: `<p>Your new OTP code is <strong>${otpCode}</strong>. Valid for 5 minutes.</p>`
+    });
+
+    res.render("verify-otp", { message: "New OTP sent to your email.", email });
+  } catch (err) {
+    console.error("Resend OTP error:", err);
+    res.status(500).send("Error resending OTP.");
+  }
+});
 
 
 

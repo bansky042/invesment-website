@@ -1,7 +1,10 @@
 @media only screen  and (max-width: 594px) and (max-height: 1200px) {
    
    .profit{
-    width: 90% !important;
+    width: 80% !important;
+   }
+   .profit-invest{
+    width: 80% !important;
    }
     .second-section .sec{
         display: block !important;
@@ -37,9 +40,7 @@ body{
     display: flex; /* Use flexbox for layout */
 }
 #sidebar{
-    position:absolute;
-    
-   
+    position:absolute; 
 }
 .top-bar{
     display: flex;
@@ -130,7 +131,17 @@ body{
 
  
 /*dashboard section 2*/
+.profit{
+    margin-left: 25px;
+}
+.profit:nth-child(1){
+    width: 95%;
+}
+.profit-invest{
+    margin-left: 25px;
+    width: 95%;
 
+}
 .second-section{
     margin-top: 50px;
     
