@@ -944,7 +944,7 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
 
   const { amount } = req.body;
   const userId = req.user.id;
-  const paymentProof = req.file ? req.file.filename : null;
+  const paymentProof = req.file ? req.file.path : null;
 
   if (!amount || !paymentProof) {
     return res.status(400).render("deposit", {
@@ -1358,14 +1358,21 @@ app.post('/investment', async (req, res) => {
 
 app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), async (req, res) => {
   try {
-    const imagePath = req.file.path;
-    await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imagePath, req.user.id]);
+    const userId = req.user.id;
+
+    // 🔄 Cloudinary stores file in req.file.path
+    const imageUrl = req.file.path;
+
+    // ✅ Update user's profile image in DB
+    await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imageUrl, userId]);
+
     res.redirect("/");
   } catch (err) {
     console.error("Error uploading profile image:", err);
     res.status(500).send("Failed to upload profile image.");
   }
 });
+
 
 
 
