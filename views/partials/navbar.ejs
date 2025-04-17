@@ -144,11 +144,7 @@
   const walletAddress = "<%= walletAddress %>";
   const coinType = "<%= coinType %>";
 
-  document.getElementById('Dashboard').onclick = function (e) {
-    e.preventDefault();
-    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
-    else window.location.href = '/';
-  };
+  
 
   document.getElementById('withdrawLink').onclick = function (e) {
     e.preventDefault();
