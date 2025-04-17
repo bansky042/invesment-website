@@ -14,8 +14,9 @@ const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const flash = require("connect-flash");
 const cron = require("node-cron");
+const dotenv = require("dotenv");
 
-
+dotenv.config();
 
 
 
@@ -100,12 +101,12 @@ app.use((req, res, next) => {
 const adminEmail = "abanakosisochukwu03@gmail.com";
 
 const pool = new Pool({
-  user: process.env.POSTGRES_USER || 'postgres', 
-  host: process.env.POSTGRES_HOST || 'localhost',
-  database: process.env.POSTGRES_DB || 'investment', 
-  password: process.env.POSTGRES_PASSWORD || 'bansky@100', 
-  port: process.env.POSTGRES_PORT || 5432,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // required by some providers
+  }
 });
+
 
 // Run every hour (or adjust timing as needed)
 cron.schedule("0 * * * *", async () => {
@@ -215,15 +216,44 @@ function isAdmin(req, res, next) {
 //  );
 //};
 
-app.get("/kyc", (req, res) => {
+app.get("/kyc", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect if user is not logged in
+    return res.redirect("/login"); // 🔐 Redirect if user is not logged in
   }
 
-  const message = req.session.kycMessage || null;
-  delete req.session.kycMessage;
+  try {
+    // ✅ Fetch user wallet details
+    const userResult = await pool.query(
+      "SELECT wallet_address, coin_type FROM users WHERE id = $1",
+      [req.user.id]
+    );
 
-  res.render("kyc", { message }); // Assuming your EJS file is named `kyc.ejs`
+    const user = userResult.rows[0];
+
+    if (!user || !user.wallet_address) {
+      return res.send(`<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`);
+    }
+
+    const walletAddress = user.wallet_address;
+    const coinType = user.coin_type;
+    const message = req.session.kycMessage || null;
+
+    // 🧹 Clear message after reading
+    delete req.session.kycMessage;
+
+    // ✅ Render KYC page with required data
+    res.render("kyc", {
+      message,
+      walletAddress,
+      coinType,
+      user,
+      users: [req.user] // for backward compatibility if needed in EJS
+    });
+
+  } catch (error) {
+    console.error("Error loading KYC page:", error);
+    res.status(500).send("An error occurred while loading the KYC page.");
+  }
 });
 
 app.get("/login", (req, res) => res.render("login.ejs"));

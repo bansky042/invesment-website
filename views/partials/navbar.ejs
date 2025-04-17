@@ -58,7 +58,7 @@
             <i class="fas fa-chart-line text-xl w-6 text-center"></i>
             <span class="ml-2 hidden">Invest</span>
           </a>
-          <a href="/kyc" class="flex items-center gap-3 w-full px-4">
+          <a href="/kyc" id="KYC" class="flex items-center gap-3 w-full px-4">
             <i class="fas fa-id-card text-xl w-6 text-center"></i>
             <span class="ml-2 hidden">KYC</span>
           </a>
@@ -172,6 +172,12 @@
     e.preventDefault();
     if (!walletAddress && !coinType) alert('Please connect your wallet first.');
     else window.location.href = '/invest';
+  };
+
+  document.getElementById('KYC').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/kyc';
   };
 
   function copyReferralLink() {
