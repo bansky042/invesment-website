@@ -216,6 +216,12 @@ function isAdmin(req, res, next) {
 //  );
 //};
 
+app.get("/admin/dashboard", isAdmin, (req, res) => {
+  res.render("admin-dashboard", { user: req.user });
+});
+
+
+
 app.get("/kyc", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login"); // 🔐 Redirect if user is not logged in
