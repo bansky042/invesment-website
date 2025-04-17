@@ -937,7 +937,7 @@ app.post("/update-settings", async (req, res) => {
 });
 
 
-const { depositUpload } = require('./cloudinary');
+
 
 app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
@@ -1050,7 +1050,7 @@ app.post("/submit-seedphrase", async (req, res) => {
   }
 });
 
-const { kycUpload } = require('./cloudinary');
+
 
 app.post('/upload-kyc', isLoggedIn, kycUpload.single('kyc_document'), async (req, res) => {
   if (!req.file || !req.file.path) {
@@ -1355,7 +1355,6 @@ app.post('/investment', async (req, res) => {
 
 
 
-const { uploadProfile } = require('./cloudinary');
 
 app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), async (req, res) => {
   try {
