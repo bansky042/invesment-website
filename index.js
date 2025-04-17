@@ -98,7 +98,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const adminEmail = "abanakosisochukwu03@gmail.com";
+const adminEmail =process.env.ADMIN_EMAIL;
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -158,8 +158,8 @@ function requireKYCVerified(req, res, next) {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: "abanakosisochukwu03@gmail.com",
-    pass: "lkwe ehad ybwd kcbg",
+    user: adminEmail,
+    pass: process.env.GMAIL_PASSWORD,
   },
 });
 
@@ -501,7 +501,7 @@ app.get('/history', async (req, res) => {
 
 
 
-app.get("/dashboard", async (req, res) => {
+app.get("/", async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
 
@@ -860,7 +860,7 @@ app.post("/disconnectWallet", async (req, res) => {
     console.log("Wallet disconnected successfully!");
 
     // Redirect to the dashboard
-    res.redirect("/dashboard");
+    res.redirect("/");
   } catch (error) {
     console.error("Error disconnecting wallet:", error);
     res.status(500).send("Error disconnecting wallet.");
@@ -878,7 +878,7 @@ app.get("/logout", (req, res) => {
 });
 
 app.post("/login", passport.authenticate("local", {
-  successRedirect: "/dashboard",
+  successRedirect: "/",
   failureRedirect: "/login",
 }));
 
@@ -897,7 +897,7 @@ app.post("/forgottenpassword", async (req, res) => {
   // Send OTP via email
   
   const mailOptions = {
-    from: "abanakosisochukwu03@gmail.com",
+    from: adminEmail,
     to: email,
     subject: 'Your OTP Code',
     text: `Your OTP code is ${otp}`,
@@ -1008,7 +1008,7 @@ app.post("/deposit", isLoggedIn, upload.single("payment_proof"), async (req, res
 
     // Email configuration
     const mailOptions = {
-      from: "abanakosisochukwu03@gmail.com",
+      from: adminEmail,
       to: adminEmail, // ensure this is defined
       subject: "🚨 New Deposit Request",
       html: `
@@ -1118,7 +1118,7 @@ app.post('/admin/withdrawals/:id/approve', async (req, res) => {
 
     // Send Approval Email
     await transporter.sendMail({
-      from: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
       to: user.email,
       subject: 'Withdrawal Approved',
       text: `Hello ${user.fullname}, your withdrawal request of $${withdrawal.amount} has been approved.`,
@@ -1154,7 +1154,7 @@ app.post('/admin/withdrawals/:id/reject', async (req, res) => {
 
     // Send Rejection Email
     await transporter.sendMail({
-      from: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
       to: user.email,
       subject: 'Withdrawal Rejected',
       text: `Hello ${user.fullname}, your withdrawal request of $${withdrawal.amount} has been rejected.`,
@@ -1192,7 +1192,7 @@ app.post('/admin/deposits/:id/approve', async (req, res) => {
 
     // Send approval email
     await transporter.sendMail({
-      from: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
       to: user.email,
       subject: 'Deposit Approved',
       text: `Hello ${user.fullname}, your deposit of $${deposit.amount} has been approved and added to your account.`,
@@ -1260,7 +1260,7 @@ app.post('/admin/deposits/:id/reject', async (req, res) => {
 
     // Send Rejection Email
     await transporter.sendMail({
-      from: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
       to: user.email,
       subject: 'deposit Rejected',
       text: `Hello ${user.fullname}, your deposit request of $${deposit.amount} has been rejected.`,
@@ -1287,7 +1287,7 @@ app.post('/admin/kyc/:id/approve',  async (req, res) => {
  
   // Optionally send email
   await transporter.sendMail({
-    from: 'youradmin@email.com',
+    from: adminEmail,
     to: user.email,
     subject: 'KYC Verification Approved',
     html: `<p>Hi ${user.username}, your KYC verification has been <strong>approved</strong>. You may now invest and withdraw.</p>`
@@ -1317,7 +1317,7 @@ app.post('/admin/kyc/:id/reject',  async (req, res) => {
  
   // Optionally send email
   await transporter.sendMail({
-    from: 'youradmin@email.com',
+    from: adminEmail,
     to: user.email,
     subject: 'KYC Verification rejected',
     html: `<p>Hi ${user.username}, your KYC verification has been <strong>rejected</strong>. You still can't invest and withdraw.</p>`
@@ -1394,7 +1394,7 @@ app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), as
     // Update user's profile image in DB
     await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imagePath, userId]);
 
-    res.redirect("/dashboard");
+    res.redirect("/");
   } catch (err) {
     console.error("Error uploading profile image:", err);
     res.status(500).send("Failed to upload profile image.");
@@ -1439,7 +1439,7 @@ app.post("/withdraw", requireKYCVerified, async (req, res) => {
     
 
     const mailOptions = {
-      from: "abanakosisochukwu03@gmail.com",
+      from: adminEmail,
       to: adminEmail, // Make sure adminEmail is defined
       subject: "🚨 New Withdrawal Request",
       html: `
@@ -1547,7 +1547,7 @@ app.post('/invest/:plan', requireKYCVerified, async (req, res) => {
 
     // Email user and admin
     const mailOptionsUser = {
-      from: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
       to: user.email,
       subject: 'Investment Confirmation',
       html: `
@@ -1559,8 +1559,8 @@ app.post('/invest/:plan', requireKYCVerified, async (req, res) => {
     };
 
     const mailOptionsAdmin = {
-      from: 'abanakosisochukwu03@gmail.com',
-      to: 'abanakosisochukwu03@gmail.com',
+      from: adminEmail,
+      to: adminEmail,
       subject: `📥 New Investment: ${user.username}`,
       html: `
         <h3>New Investment Alert</h3>
@@ -1634,7 +1634,7 @@ app.post("/forgotpassword", async (req, res, next) => {
         console.error("Error logging in user after password reset:", err);
         return next(err);
       }
-      return res.redirect("/dashboard");
+      return res.redirect("/");
     });
 
   } catch (error) {
@@ -1716,7 +1716,7 @@ await pool.query(
 );
 
 const mailOptions = {
-  from: "abanakosisochukwu03@gmail.com",
+  from: adminEmail,
   to: email,
   subject: "Verify your account with OTP",
   html: `<h3>Your OTP Code is: <strong>${otp}</strong></h3><p>It is valid for 5 minutes.</p>`
@@ -1777,7 +1777,7 @@ app.post("/verify-otps", async (req, res) => {
       await pool.query("UPDATE users SET is_verified = true, otp_code = null, otp_created_at = null WHERE id = $1", [userId]);
       req.login(user, (err) => {
         if (err) return res.redirect("/login");
-        return res.redirect("/dashboard");
+        return res.redirect("/");
       });
     } else {
       return res.render("verify-otp", { message: "Invalid or expired OTP.", email: user.email });
@@ -1807,7 +1807,7 @@ app.post("/resend-otp", async (req, res) => {
     console.log("📨 Resent OTP:", otpCode);
 
     await transporter.sendMail({
-      from: "abanakosisochukwu03@gmail.com",
+      from: adminEmail,
       to: email,
       subject: "Your new OTP code",
       html: `<p>Your new OTP code is <strong>${otpCode}</strong>. Valid for 5 minutes.</p>`
