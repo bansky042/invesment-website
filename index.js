@@ -1772,7 +1772,7 @@ app.post("/verify-otps", async (req, res) => {
 
     const now = new Date();
     const created = new Date(user.otp_created_at);
-    const isExpired = now - created > 5 * 60 * 1000;
+    const isExpired = now - created > 30 * 60 * 1000;
 
     const isMatch = otp.trim() === user.otp_code.trim();
 

@@ -1,158 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
+  <title>Deposit Requests - Admin Panel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deposit Admin</title>
-  <style>
-    body {
-      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
-    background-size: cover; /* Ensures the background covers the entire page */
-    height: auto; /* Ensures the body takes the full height of the viewport */
-    background-repeat: no-repeat;
-    margin: 0; /* Remove default margin */
-    padding: 50px 0; /* Remove default padding */
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-
-    .container {
-      background-color: #ffffff;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-      width: 700px;
-      max-width: 100%;
-    }
-
-    .container h1 {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 30px;
-      color: #333;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 16px;
-    }
-
-    th,
-    td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-
-    th {
-      background-color: #3498db;
-      color: white;
-      font-weight: bold;
-    }
-
-    td {
-      background-color: #f9f9f9;
-    }
-
-    tr:nth-child(even) td {
-      background-color: #f2f2f2;
-    }
-
-    button {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background-color: #3498db;
-      color: white;
-      transition: 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #125684;
-    }
-
-    a {
-      color: #3498db;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .action-buttons form {
-      margin: 0;
-    }
-
-    .processed-status {
-      font-style: italic;
-      color: #888;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 min-h-screen px-4 py-8">
 
-<body>
-  <div class="container">
-    <h1>Pending Deposits</h1>
-    <table>
-      <thead>
-        <tr>
-          <th>User ID</th>
-          <th>Amount</th>
-          <th>Proof</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% deposits.forEach(d => { %>
-          <tr>
-            <td><%= d.user_id %></td>
-            <td>$<%= parseFloat(d.amount).toFixed(2) %></td>
-            <td>
-              <% if (d.payment_proof) { %>
-                <a href="/admin/uploads/<%= d.payment_proof %>" target="_blank">View Proof</a>
-                <% console.log("for deposit:", d.payment_proof) %> <!-- This will log the proof to the console -->
-              <% } else { %>
-                No Proof
-              <% } %>
-            </td>
-            
-            
-            <td><%= d.status %></td>
-            <td>
-              <% if (d.status && d.status.toLowerCase() === "pending") { %>
-                <div class="action-buttons">
-                  <form action="/admin/deposits/<%= d.id %>/approve" method="POST" style="display:inline;">
-                    <button type="submit">Approve</button>
-                  </form>
-                  <form action="/admin/deposits/<%= d.id %>/reject" method="POST" style="display:inline;">
-                    <button type="submit">Reject</button>
-                  </form>
-                </div>
-              <% } else { %>
-                <span class="processed-status">Processed (<%= d.status %>)</span>
-              <% } %>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+  <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+    <h1 class="text-2xl font-bold mb-6 text-center">Deposit Requests</h1>
+
+    <% if (deposits.length === 0) { %>
+      <p class="text-center text-gray-600">No deposit requests available.</p>
+    <% } else { %>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left border-collapse">
+          <thead class="bg-blue-100 text-blue-800 font-semibold">
+            <tr>
+              <th class="p-3">User ID</th>
+              <th class="p-3">Amount</th>
+              <th class="p-3">Proof</th>
+              <th class="p-3">Status</th>
+              <th class="p-3 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <% deposits.forEach(d => { %>
+              <tr class="hover:bg-gray-50">
+                <td class="p-3"><%= d.user_id %></td>
+                <td class="p-3">$<%= parseFloat(d.amount).toFixed(2) %></td>
+                <td class="p-3">
+                  <% if (d.payment_proof) { %>
+                    <a href="/admin/uploads/<%= d.payment_proof %>" target="_blank" class="text-blue-600 hover:underline">View Proof</a>
+                  <% } else { %>
+                    <span class="text-gray-400 italic">No Proof</span>
+                  <% } %>
+                </td>
+                <td class="p-3 capitalize"><%= d.status %></td>
+                <td class="p-3 flex justify-center gap-3">
+                  <% if (d.status.toLowerCase() === "pending") { %>
+                    <form action="/admin/deposits/<%= d.id %>/approve" method="POST">
+                      <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-800 text-xs">Approve</button>
+                    </form>
+                    <form action="/admin/deposits/<%= d.id %>/reject" method="POST">
+                      <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-800 text-xs">Reject</button>
+                    </form>
+                  <% } else { %>
+                    <span class="text-gray-500 italic">Processed (<%= d.status %>)</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
   </div>
-</body>
 
+</body>
 </html>
