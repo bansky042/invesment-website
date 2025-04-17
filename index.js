@@ -156,12 +156,15 @@ function requireKYCVerified(req, res, next) {
 }
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.SMTP_HOST,
+  port: 587,
+  secure: false,
   auth: {
     user: adminEmail,
     pass: process.env.GMAIL_PASSWORD,
   },
 });
+
 
 const saltRounds = 10;
 
