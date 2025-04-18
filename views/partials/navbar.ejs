@@ -37,7 +37,7 @@
 
         <!-- Menu Items -->
         <div class="mt-2 flex flex-col gap-3 items-center" id="menuItems">
-          <a href="#" id="Dashboard" class="flex items-center gap-3 w-full px-4">
+          <a href="/" id="Dashboard" class="flex items-center gap-3 w-full px-4">
             <i class="fas fa-tachometer-alt text-xl w-6 text-center menu-icon"></i>
                <span class="ml-2 hidden">Dashboard</span>
           </a>
@@ -147,11 +147,7 @@
   const walletAddress = "<%= walletAddress %>";
   const coinType = "<%= coinType %>";
 
-  document.getElementById('Dashboard').onclick = function (e) {
-    e.preventDefault();
-    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
-    else window.location.href = '/dashboard';
-  };
+  
 
   document.getElementById('withdrawLink').onclick = function (e) {
     e.preventDefault();
