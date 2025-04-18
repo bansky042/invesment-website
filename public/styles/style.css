@@ -1,11 +1,16 @@
 @media only screen  and (max-width: 594px) and (max-height: 1200px) {
    
-   .profit{
-    width: 80% !important;
-   }
-   .profit-invest{
-    width: 80% !important;
-   }
+    .sidebar.collapsed .menu-icon {
+        display: none;
+     }
+ .profit{
+  width: 85% !important;
+  margin-left: -20px !important;
+ }
+ .profit-invest{
+  width: 95% !important;
+  margin-left: -35px !important;
+ }
     .second-section .sec{
         display: block !important;
     }
