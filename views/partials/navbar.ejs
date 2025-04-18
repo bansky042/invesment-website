@@ -2,8 +2,8 @@
 <div id="layoutWrapper" style="position: relative; display: flex;">
   
   <!-- Sidebar -->
-  <div id="sidebar" class="sidebar text-white fixed top-0 left-0 h-screen z-50 transition-all duration-300"
-     style="width: 80px; background-color: transparent; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000; transition: width 0.3s ease, background-color 0.3s ease;">
+  <div id="sidebar" class="sidebar collapsed text-white fixed top-0 left-0 h-screen z-50 transition-all duration-300"
+    style="width: 80px; background-color: transparent; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000; transition: width 0.3s ease, background-color 0.3s ease;">
  <div class="flex flex-col h-full justify-between">
 
       <!-- Top Section -->
@@ -21,7 +21,7 @@
 <form id="profileForm" action="/upload-profile" method="POST" enctype="multipart/form-data" class="flex flex-col items-center justify-center mt-0 mb-6 transition-all duration-300">
   <label for="profileUpload" class="cursor-pointer">
     <img src="<%= user.profile_image%>" alt="User Avatar"
-         class="rounded-full object-cover border-2 border-white transition-all duration-300"
+         class="rounded-full object-cover border-2 border-white transition-all duration-300 menu-icon"
          id="profileImage"
          style="width: 50px; height: 50px;">
   </label>
@@ -37,38 +37,38 @@
 
         <!-- Menu Items -->
         <div class="mt-2 flex flex-col gap-3 items-center" id="menuItems">
-          <a href="/" id="Dashboard" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-tachometer-alt text-xl w-6 text-center"></i>
+          <a href="#" id="Dashboard" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-tachometer-alt text-xl w-6 text-center menu-icon"></i>
                <span class="ml-2 hidden">Dashboard</span>
           </a>
           
           <a href="#" id="withdrawLink" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-hand-holding-usd text-xl w-6 text-center"></i>
+            <i class="fas fa-hand-holding-usd text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">Withdraw</span>
           </a>
           <a href="#" id="depositLink" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-university text-xl w-6 text-center"></i>
+            <i class="fas fa-university text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">Deposit</span>
           </a>
           <a href="#" id="historyLink" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-history text-xl w-6 text-center"></i>
+            <i class="fas fa-history text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">History</span>
           </a>
           <a href="#" id="investLink" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-chart-line text-xl w-6 text-center"></i>
+            <i class="fas fa-chart-line text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">Invest</span>
           </a>
-          <a href="/kyc" id="KYC" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-id-card text-xl w-6 text-center"></i>
+          <a href="/kyc" class="flex items-center gap-3 w-full px-4">
+            <i class="fas fa-id-card text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">KYC</span>
           </a>
           <a href="/settings" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-cog text-xl w-6 text-center"></i>
+            <i class="fas fa-cog text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">Settings</span>
           </a>
           
           <a href="/logout" class="flex items-center gap-3 w-full px-4">
-            <i class="fas fa-sign-out-alt text-xl w-6 text-center"></i>
+            <i class="fas fa-sign-out-alt text-xl w-6 text-center menu-icon"></i>
             <span class="ml-2 hidden">Logout</span>
           </a>
         </div>
@@ -118,7 +118,8 @@
 
   if (isExpanded) {
     sidebar.style.width = '288px';
-    sidebar.style.backgroundColor = '#000'; // Expand = black background
+    sidebar.style.backgroundColor = '#000';
+    sidebar.classList.remove('collapsed'); // Remove collapsed class
     menuItems.forEach(el => el.classList.remove('hidden'));
     hamburgerIcon.classList.add('hidden');
     closeIcon.classList.remove('hidden');
@@ -128,7 +129,8 @@
     profileText.classList.remove('hidden');
   } else {
     sidebar.style.width = '80px';
-    sidebar.style.backgroundColor = 'transparent'; // Collapse = transparent
+    sidebar.style.backgroundColor = 'transparent';
+    sidebar.classList.add('collapsed'); // Add collapsed class
     menuItems.forEach(el => el.classList.add('hidden'));
     hamburgerIcon.classList.remove('hidden');
     closeIcon.classList.add('hidden');
@@ -136,15 +138,20 @@
     profileImage.style.width = '48px';
     profileImage.style.height = '48px';
     profileText.classList.add('hidden');
+  }
+});
+
  
-    }
-  });
 </script>
 <script>
   const walletAddress = "<%= walletAddress %>";
   const coinType = "<%= coinType %>";
 
-  
+  document.getElementById('Dashboard').onclick = function (e) {
+    e.preventDefault();
+    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
+    else window.location.href = '/dashboard';
+  };
 
   document.getElementById('withdrawLink').onclick = function (e) {
     e.preventDefault();
@@ -168,12 +175,6 @@
     e.preventDefault();
     if (!walletAddress && !coinType) alert('Please connect your wallet first.');
     else window.location.href = '/invest';
-  };
-
-  document.getElementById('KYC').onclick = function (e) {
-    e.preventDefault();
-    if (!walletAddress && !coinType) alert('Please connect your wallet first.');
-    else window.location.href = '/kyc';
   };
 
   function copyReferralLink() {
