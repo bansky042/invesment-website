@@ -45,7 +45,7 @@ app.use((req, res, next) => {
   if (req.user) {
     res.locals.user = req.user;
     res.locals.users = [req.user];
-    res.locals.walletAddress = req.user.wallet_address;
+    // res.locals.walletAddress = req.user.wallet_address;
   }
   next();
 });
@@ -177,44 +177,15 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
 
 
 
-app.get("/kyc", async (req, res) => {
+app.get("/kyc", (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // 🔐 Redirect if user is not logged in
+    return res.redirect("/login"); // Redirect if user is not logged in
   }
 
-  try {
-    // ✅ Fetch user wallet details
-    const userResult = await pool.query(
-      "SELECT wallet_address, coin_type FROM users WHERE id = $1",
-      [req.user.id]
-    );
+  const message = req.session.kycMessage || null;
+  delete req.session.kycMessage;
 
-    const user = userResult.rows[0];
-
-    if (!user || !user.wallet_address) {
-      return res.send(`<script>alert("Connect Wallet first!"); window.location.href = "/";</script>`);
-    }
-
-    const walletAddress = user.wallet_address;
-    const coinType = user.coin_type;
-    const message = req.session.kycMessage || null;
-
-    // 🧹 Clear message after reading
-    delete req.session.kycMessage;
-
-    // ✅ Render KYC page with required data
-    res.render("kyc", {
-      message,
-      walletAddress,
-      coinType,
-      user,
-      users: [req.user] // for backward compatibility if needed in EJS
-    });
-
-  } catch (error) {
-    console.error("Error loading KYC page:", error);
-    res.status(500).send("An error occurred while loading the KYC page.");
-  }
+  res.render("kyc", { message }); // Assuming your EJS file is named `kyc.ejs`
 });
 
 app.get("/login", (req, res) => res.render("login.ejs"));
@@ -223,33 +194,33 @@ app.get("/withdraw", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
   try {
-    const result = await pool.query(
-      "SELECT wallet_address, profit_balance FROM users WHERE id = $1",
-      [req.user.id]
-    );
+    // const result = await pool.query(
+    //   "SELECT wallet_address, profit_balance FROM users WHERE id = $1",
+    //   [req.user.id]
+    // );
 
-    const user = result.rows[0];
-    console.log("User:", user); // Debugging log
-    if (!user.wallet_address) {
-      return res.send(
-        `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
-      );
-    }
+    // const user = result.rows[0];
+    // console.log("User:", user); // Debugging log
+    // if (!user.wallet_address) {
+    //   return res.send(
+    //     `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
+    //   );
+    // }
 
     // 🟢 Fetch withdrawal history
     const withdrawalsResult = await pool.query(
       "SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
-    const userWallet = await pool.query(
-      'SELECT wallet_address, coin_type FROM users WHERE id = $1',
-      [req.user.id]
-    );
+    // const userWallet = await pool.query(
+    //   'SELECT wallet_address, coin_type FROM users WHERE id = $1',
+    //   [req.user.id]
+    // );
     
-    const walletAddress = userWallet.rows[0]?.wallet_address;
+    // const walletAddress = userWallet.rows[0]?.wallet_address;
    
-    const withdrawals = withdrawalsResult.rows;
-    const coinType = userWallet.rows[0]?.coin_type;
+    // const withdrawals = withdrawalsResult.rows;
+    // const coinType = userWallet.rows[0]?.coin_type;
 
     res.render("withdraw", {
       user,
@@ -257,8 +228,8 @@ app.get("/withdraw", async (req, res) => {
       withdrawals, // Pass it here
       user: req.user,
       users: [req.user],
-      walletAddress,
-      coinType,
+      // walletAddress,
+      // coinType,
       
     });
 
@@ -370,24 +341,24 @@ app.get('/investment', async (req, res) => {
   const ongoing = await getUserInvestments(user.id); 
 
   // Fetch wallet address from the database
-  const userWallet = await pool.query(
-    "SELECT wallet_address FROM users WHERE id = $1",
-    [req.user.id]
-  );
-  const walletAddress = userWallet.rows[0]?.wallet_address;
+  // const userWallet = await pool.query(
+  //   "SELECT wallet_address FROM users WHERE id = $1",
+  //   [req.user.id]
+  // );
+  // const walletAddress = userWallet.rows[0]?.wallet_address;
  
-  console.log('Fetched Wallet Address:', walletAddress); // Check if wallet address is being fetched correctly
+  // console.log('Fetched Wallet Address:', walletAddress); // Check if wallet address is being fetched correctly
 
-  // If no wallet address, log and handle error
-  if (!walletAddress) {
-    console.error("No wallet address found for the user.");
-  }
+  // // If no wallet address, log and handle error
+  // if (!walletAddress) {
+  //   console.error("No wallet address found for the user.");
+  // }
 
   // Render the page and pass walletAddress to the view
   res.render('investment', {
     user,
     users: [user], // For navbar compatibility
-    walletAddress, // Pass walletAddress here
+    // walletAddress, // Pass walletAddress here
     ongoing
   });
 });
@@ -428,13 +399,13 @@ app.get('/history', async (req, res) => {
       ORDER BY created_at DESC
     `;
     const withdrawalResult = await pool.query(withdrawalQuery, [userId]);
-    const userWallet = await pool.query(
-      "SELECT wallet_address,coin_type FROM users WHERE id = $1",
-      [req.user.id]
-    );
-    const walletAddress = userWallet.rows[0]?.wallet_address;
-   const coinType = userWallet.rows[0]?.coin_type;
-   console.log("Coin Type:", coinType); // Debugging log
+  //   const userWallet = await pool.query(
+  //     "SELECT wallet_address,coin_type FROM users WHERE id = $1",
+  //     [req.user.id]
+  //   );
+  //   const walletAddress = userWallet.rows[0]?.wallet_address;
+  //  const coinType = userWallet.rows[0]?.coin_type;
+  //  console.log("Coin Type:", coinType); // Debugging log
     console.log("Withdrawal Result:", withdrawalResult.rows); // Debugging log
     console.log("Deposit Result:", depositResult.rows); // Debugging log
     // Normalize withdrawal status
@@ -450,8 +421,8 @@ app.get('/history', async (req, res) => {
       withdrawals,
       user: req.user,
       users: [req.user],
-      walletAddress,
-      coinType,
+      // walletAddress,
+      // coinType,
     });
   } catch (err) {
     console.error('Error fetching transaction history:', err);
@@ -469,7 +440,7 @@ app.get("/", async (req, res) => {
     const userId = req.user.id;
 
     const { rows } = await pool.query(
-      `SELECT id, username, profit_balance, wallet_address, coin_type, referral_balance, deposit_balance, profile_image,referral_code,kyc_status
+      `SELECT id, username, profit_balance,  referral_balance, deposit_balance, profile_image,referral_code,kyc_status
        FROM users WHERE id = $1`,
       [userId]
     );
@@ -497,8 +468,8 @@ app.get("/", async (req, res) => {
       userId: currentUser.id,
       users: rows, // This is still an array, used for looping in EJS
       seedPhraseAccepted: req.session.seedPhraseAccepted || false,
-      walletAddress: currentUser.wallet_address || "",
-      coinType: currentUser.coin_type || "",
+      // walletAddress: currentUser.wallet_address || "",
+      // coinType: currentUser.coin_type || "",
 
       totalReferrals,
       referralLink,
@@ -554,8 +525,8 @@ app.get("/settings", async (req, res) => {
   try {
     const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
     const user = userResult.rows[0];
-    const walletAddress = user.wallet_address;
-    const coinType = user.coin_type;
+    // // const walletAddress = user.wallet_address;
+    // const coinType = user.coin_type;
     const seedResult = await pool.query(
       "SELECT * FROM user_seed_phrases WHERE user_id = $1",
       [req.user.id]
@@ -564,8 +535,8 @@ app.get("/settings", async (req, res) => {
 
     res.render("settings", { user, seed,
       users: [req.user],
-      walletAddress,
-      coinType,
+      // walletAddress,
+      // coinType,
      }); // now passing both `user` and `seed`
   } catch (err) {
     console.error("Error fetching user settings:", err);
@@ -586,16 +557,16 @@ app.get("/withdrawals", async (req, res) => {
       "SELECT * FROM withdrawals WHERE user_id = $1 ORDER BY created_at DESC",
       [req.user.id]
     );
-    const userWallet = await pool.query(
-      "SELECT wallet_address FROM users WHERE id = $1",
-      [req.user.id]
-    );
-    const walletAddress = userWallet.rows[0]?.wallet_address;
+    // const userWallet = await pool.query(
+    //   "SELECT wallet_address FROM users WHERE id = $1",
+    //   [req.user.id]
+    // );
+    // const walletAddress = userWallet.rows[0]?.wallet_address;
     console.log( { rows }); // Debugging log
     res.render("withdrawals.ejs", { withdrawals: rows,
       user: req.user,
       users: [req.user],
-      walletAddress,
+      // walletAddress,
      });
   } catch (error) {
     console.error("Error fetching withdrawal history:", error);
@@ -611,17 +582,17 @@ app.get("/deposit",  async (req, res) => {
   try {
 
     const result = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);;
-    const userWallet = await pool.query(
-      'SELECT wallet_address, coin_type FROM users WHERE id = $1',
-      [req.user.id]
-    );
-    const walletAddress = userWallet.rows[0]?.wallet_address;
-    const coinType = userWallet.rows[0]?.coin_type;
-    if (!walletAddress) {
-      return res.send(
-        `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
-      );
-    }
+    // const userWallet = await pool.query(
+    //   'SELECT wallet_address, coin_type FROM users WHERE id = $1',
+    //   [req.user.id]
+    // );
+    // const walletAddress = userWallet.rows[0]?.wallet_address;
+    // const coinType = userWallet.rows[0]?.coin_type;
+    // if (!walletAddress) {
+    //   return res.send(
+    //     `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
+    //   );
+    // }
     const message = req.session.message;
 
     
@@ -629,10 +600,10 @@ app.get("/deposit",  async (req, res) => {
 
     res.render("deposit", {
       user: req.user,
-      walletAddress, // 🟢 pass this to EJS
+      // walletAddress, // 🟢 pass this to EJS
       message,// or a flash message if needed
       users: [req.user],
-      coinType,
+      // coinType,
       
   
     });
@@ -670,25 +641,25 @@ app.get('/invest', async (req, res) => {
       'SELECT * FROM investments WHERE user_id = $1 AND status = $2 ORDER BY created_at DESC',
       [userId, 'active']
     );
-    const userWallet = await pool.query(
-      "SELECT wallet_address,coin_type FROM users WHERE id = $1",
-      [req.user.id]
-    );
-    const walletAddress = userWallet.rows[0]?.wallet_address;
-    const coinType = userWallet.rows[0]?.coin_type;
+    // const userWallet = await pool.query(
+    //   "SELECT wallet_address,coin_type FROM users WHERE id = $1",
+    //   [req.user.id]
+    // );
+    // const walletAddress = userWallet.rows[0]?.wallet_address;
+    // const coinType = userWallet.rows[0]?.coin_type;
     const ongoing = result.rows;
 
     res.render('investment', { ongoing,
       user: req.user,
-      walletAddress,
+      // walletAddress,
       users: [req.user],
-      coinType,
+      // coinType,
      }); // ✅ PASS IT HERE
   } catch (error) {
     console.error('Error fetching ongoing investments:', error);
     res.render('investment', { ongoing: [],
-      walletAddress,
-      coinType,
+      // walletAddress,
+      // coinType,
      }); // ✅ PASS EMPTY ARRAY AS FALLBACK
   }
 });
@@ -737,96 +708,96 @@ app.get('/invest/:plan', async (req, res) => {
 
 
 
-app.get("/insertSeedPhrase", (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect to login if not authenticated
-  }
-  const userId = req.user?.id || null; // Use optional chaining to prevent errors
-  console.log("User ID:", userId); // Debugging log
+// app.get("/insertSeedPhrase", (req, res) => {
+//   if (!req.isAuthenticated()) {
+//     return res.redirect("/login"); // Redirect to login if not authenticated
+//   }
+//   const userId = req.user?.id || null; // Use optional chaining to prevent errors
+//   console.log("User ID:", userId); // Debugging log
 
-  if (!userId) {
-    return res.status(400).send("User ID is missing or invalid.");
-  }
+//   if (!userId) {
+//     return res.status(400).send("User ID is missing or invalid.");
+//   }
 
-  res.render("insertSeedPhrase.ejs", { userId }); // Pass userId to the view
-});
+//   res.render("insertSeedPhrase.ejs", { userId }); // Pass userId to the view
+// });
 
-app.get("/insertWalletAddress", (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect to login if not authenticated
-  }
-  const userId = req.user?.id || null; // Use optional chaining to prevent errors
-  console.log("User ID:", userId); // Debugging log
+// app.get("/insertWalletAddress", (req, res) => {
+//   if (!req.isAuthenticated()) {
+//     return res.redirect("/login"); // Redirect to login if not authenticated
+//   }
+//   const userId = req.user?.id || null; // Use optional chaining to prevent errors
+//   console.log("User ID:", userId); // Debugging log
 
-  if (!userId) {
-    return res.status(400).send("User ID is missing or invalid.");
-  }
+//   if (!userId) {
+//     return res.status(400).send("User ID is missing or invalid.");
+//   }
 
-  res.render("insertWalletAddress.ejs", { userId }); // Render the insertWalletAddress view
-});
-
-
+//   res.render("insertWalletAddress.ejs", { userId }); // Render the insertWalletAddress view
+// });
 
 
 
-app.post("/submit-walletaddress", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect if not authenticated
-  }
 
-  const userId = req.user.id; 
-  const walletAddress = req.body.walletAddress; 
-  const coinType = req.body.coinType; // Get the coin type from the form
-  console.log("Coin Type:", coinType); // Debugging log
-  // Log the wallet address and user ID for debugging
-console.log("Wallet Address:", walletAddress); // Debugging log
-  console.log("User ID:", userId); // Debugging log
-  // Validate wallet address
-  if (!walletAddress) {
-    return res.status(400).send("Wallet address is required.");
-  }
 
-  try {
-    await pool.query(
-      'UPDATE users SET wallet_address = $1, coin_type = $2 WHERE id = $3',
-      [walletAddress, coinType, userId]
-    );
-    console.log("Wallet address saved successfully!");
-    res.redirect("/insertSeedPhrase"); // Redirect instead of sending a response
+// app.post("/submit-walletaddress", async (req, res) => {
+//   if (!req.isAuthenticated()) {
+//     return res.redirect("/login"); // Redirect if not authenticated
+//   }
+
+//   const userId = req.user.id; 
+//   const walletAddress = req.body.walletAddress; 
+//   const coinType = req.body.coinType; // Get the coin type from the form
+//   console.log("Coin Type:", coinType); // Debugging log
+//   // Log the wallet address and user ID for debugging
+// console.log("Wallet Address:", walletAddress); // Debugging log
+//   console.log("User ID:", userId); // Debugging log
+//   // Validate wallet address
+//   if (!walletAddress) {
+//     return res.status(400).send("Wallet address is required.");
+//   }
+
+//   try {
+//     await pool.query(
+//       'UPDATE users SET wallet_address = $1, coin_type = $2 WHERE id = $3',
+//       [walletAddress, coinType, userId]
+//     );
+//     console.log("Wallet address saved successfully!");
+//     res.redirect("/insertSeedPhrase"); // Redirect instead of sending a response
    
-  } catch (err) {
-    console.error("Error updating wallet address:", err);
-    res.status(500).send("Server error");
-  }
-});
+//   } catch (err) {
+//     console.error("Error updating wallet address:", err);
+//     res.status(500).send("Server error");
+//   }
+// });
 
 
-app.post("/disconnectWallet", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/login"); // Redirect if not logged in
-  }
+// app.post("/disconnectWallet", async (req, res) => {
+//   if (!req.isAuthenticated()) {
+//     return res.redirect("/login"); // Redirect if not logged in
+//   }
 
-  const userId = req.user.id; // Get the authenticated user’s ID
+//   const userId = req.user.id; // Get the authenticated user’s ID
 
-  try {
-    // Remove wallet address from users table
-    await pool.query("UPDATE users SET wallet_address = NULL WHERE id = $1", [userId]);
-    await pool.query("UPDATE users SET coin_type = NULL WHERE id = $1", [userId]);
-    // Delete the user's seed phrase entry from user_seed_phrases table
-    await pool.query("DELETE FROM user_seed_phrases WHERE user_id = $1", [userId]);
+//   try {
+//     // Remove wallet address from users table
+//     await pool.query("UPDATE users SET wallet_address = NULL WHERE id = $1", [userId]);
+//     await pool.query("UPDATE users SET coin_type = NULL WHERE id = $1", [userId]);
+//     // Delete the user's seed phrase entry from user_seed_phrases table
+//     await pool.query("DELETE FROM user_seed_phrases WHERE user_id = $1", [userId]);
 
-    // Mark the seed phrase as "not accepted" in session
-    req.session.seedPhraseAccepted = false;
+//     // Mark the seed phrase as "not accepted" in session
+//     req.session.seedPhraseAccepted = false;
 
-    console.log("Wallet disconnected successfully!");
+//     console.log("Wallet disconnected successfully!");
 
-    // Redirect to the dashboard
-    res.redirect("/");
-  } catch (error) {
-    console.error("Error disconnecting wallet:", error);
-    res.status(500).send("Error disconnecting wallet.");
-  }
-});
+//     // Redirect to the dashboard
+//     res.redirect("/");
+//   } catch (error) {
+//     console.error("Error disconnecting wallet:", error);
+//     res.status(500).send("Error disconnecting wallet.");
+//   }
+// });
 
 
 
@@ -949,8 +920,8 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
   if (!amount || !paymentProof) {
     return res.status(400).render("deposit", {
       user: req.user,
-      walletAddress: req.user.wallet_address,
-      coinType: req.user.coin_type,
+      // walletAddress: req.user.wallet_address,
+      // coinType: req.user.coin_type,
       message: "All fields are required."
     });
   }
@@ -989,8 +960,8 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
         console.error("Error sending admin email:", error);
         return res.render("deposit", {
           user,
-          walletAddress: user.wallet_address,
-          coinType: user.coin_type,
+          // walletAddress: user.wallet_address,
+          // coinType: user.coin_type,
           message: "Deposit submitted, but failed to notify admin."
         });
       }
@@ -998,8 +969,8 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
       console.log("Admin notified:", info.response);
       return res.render("deposit", {
         user,
-        walletAddress: user.wallet_address,
-        coinType: user.coin_type,
+        // walletAddress: user.wallet_address,
+        // coinType: user.coin_type,
         message: "Deposit request submitted successfully! Redirecting to dashboard..."
       });
     });
@@ -1007,8 +978,8 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
     console.error("Deposit Error:", error);
     return res.status(500).render("deposit", {
       user: req.user,
-      walletAddress: req.user.wallet_address,
-      coinType: req.user.coin_type,
+      // walletAddress: req.user.wallet_address,
+      // coinType: req.user.coin_type,
       message: "Server error. Please try again."
     });
   }
@@ -1021,34 +992,34 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
 
 
 
-app.post("/submit-seedphrase", async (req, res) => {
-  try {
-      const { userId, ...seedPhrases } = req.body;
+// app.post("/submit-seedphrase", async (req, res) => {
+//   try {
+//       const { userId, ...seedPhrases } = req.body;
 
-      // Ensure all seed phrase fields are filled
-      const seedPhraseValues = Object.values(seedPhrases);
-      if (seedPhraseValues.some(value => !value.trim())) {
-          return res.status(400).send("All seed phrase fields must be filled.");
-      }
+//       // Ensure all seed phrase fields are filled
+//       const seedPhraseValues = Object.values(seedPhrases);
+//       if (seedPhraseValues.some(value => !value.trim())) {
+//           return res.status(400).send("All seed phrase fields must be filled.");
+//       }
 
-      // Store the seed phrase in the database
-      const query = `
-          INSERT INTO user_seed_phrases (user_id, seedphrase0, seedphrase1, seedphrase2, seedphrase3, seedphrase4, seedphrase5, seedphrase6, seedphrase7, seedphrase8, seedphrase9, seedphrase10, seedphrase11)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING *;
-      `;
+//       // Store the seed phrase in the database
+//       const query = `
+//           INSERT INTO user_seed_phrases (user_id, seedphrase0, seedphrase1, seedphrase2, seedphrase3, seedphrase4, seedphrase5, seedphrase6, seedphrase7, seedphrase8, seedphrase9, seedphrase10, seedphrase11)
+//           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+//           RETURNING *;
+//       `;
       
-      const values = [userId, ...seedPhraseValues];
+//       const values = [userId, ...seedPhraseValues];
 
-      const result = await pool.query(query, values);
-      console.log("Inserted Seed Phrase:", result.rows[0]);
+//       const result = await pool.query(query, values);
+//       console.log("Inserted Seed Phrase:", result.rows[0]);
 
-      res.status(200).send("Seed phrase successfully saved.");
-  } catch (error) {
-      console.error("Error inserting seed phrase:", error);
-      res.status(500).send("Internal server error.");
-  }
-});
+//       res.status(200).send("Seed phrase successfully saved.");
+//   } catch (error) {
+//       console.error("Error inserting seed phrase:", error);
+//       res.status(500).send("Internal server error.");
+//   }
+// });
 
 
 
@@ -1389,8 +1360,8 @@ app.post("/withdraw", requireKYCVerified, async (req, res) => {
   if (!accountNumber || !cryptoType || !amount) {
     return res.status(400).render("withdraw", {
       user: req.user,
-      walletAddress: req.user.wallet_address,
-      coinType: req.user.coin_type,
+      // walletAddress: req.user.wallet_address,
+      // coinType: req.user.coin_type,
       message: "All fields are required.",
     });
   }
@@ -1433,8 +1404,8 @@ app.post("/withdraw", requireKYCVerified, async (req, res) => {
         console.error("Error sending email:", error);
         return res.render("withdraw", {
           user,
-          walletAddress: user.wallet_address,
-          coinType: user.coin_type,
+          // walletAddress: user.wallet_address,
+          // coinType: user.coin_type,
           message: "Withdrawal submitted, but failed to notify admin.",
         });
       }
@@ -1442,8 +1413,8 @@ app.post("/withdraw", requireKYCVerified, async (req, res) => {
       console.log("Admin notified:", info.response);
       return res.render("withdraw", {
         user,
-        walletAddress: user.wallet_address,
-        coinType: user.coin_type,
+        // walletAddress: user.wallet_address,
+        // coinType: user.coin_type,
         message: "Withdrawal request submitted successfully. Redirecting to dashboard...",
       });
     });
@@ -1451,8 +1422,8 @@ app.post("/withdraw", requireKYCVerified, async (req, res) => {
     console.error("Error processing withdrawal:", error);
     res.status(500).render("withdraw", {
       user: req.user,
-      walletAddress: req.user.wallet_address,
-      coinType: req.user.coin_type,
+      // walletAddress: req.user.wallet_address,
+      // coinType: req.user.coin_type,
       message: "Error processing withdrawal.",
     });
   }
@@ -1692,8 +1663,12 @@ await pool.query(
 const mailOptions = {
   from: adminEmail,
   to: email,
-  subject: "Verify your account with OTP",
-  html: `<h3>Your OTP Code is: <strong>${otp}</strong></h3><p>It is valid for 5 minutes.</p>`
+  subject: "OTP to complete your registration",
+  html: `<h3>Hello,</h3>
+<p>Your OTP code is: <strong>${otp}</strong></p>
+<p>This code is valid for <strong>5 minutes</strong>.</p>
+<p>If you did not request this, please ignore this email.</p>
+`
 };
 
 await transporter.sendMail(mailOptions);

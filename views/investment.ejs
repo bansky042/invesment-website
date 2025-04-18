@@ -12,16 +12,18 @@
   <style>
 @media only screen  and (max-width: 594px) and (max-height: 1200px) {
   .plans-container{
-    width: 77% !important;
-    margin-left: 60px !important;
+    width: 80% !important;
+    margin-left: 20px !important;
   }
   .investments-section{
-    width: 90% !important;
-    margin-left: 60px !important;
+    width: 95% !important;
+    margin-left: 10px !important;
   }
+  .sidebar.collapsed .menu-icon {
+          display: none;
+       }
 
 }
-
 
 
     body {
@@ -131,7 +133,7 @@
 </head>
 <body>
  
-  <%- include('partials/navbar', { walletAddress, coinType }) %>
+  <%- include('partials/navbar') %>
   <!-- Temporarily try without passing walletAddress -->
 
 

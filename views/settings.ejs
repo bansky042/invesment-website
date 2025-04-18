@@ -84,7 +84,11 @@
     cursor: pointer;
     transition: background-color 0.3s;
   }
-
+.settings-container h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+  }
   .btn-save:hover {
     background-color: #125684;
   }
@@ -112,19 +116,14 @@
 </head>
 <body>
 
-  <%-include("partials/navbar", {walletAddress})%>
+  <%-include("partials/navbar")%>
   <div class="settings-container">
-
     <% if (success_msg) { %>
-        <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 8px;">
           <%= success_msg %>
-        </div>
       <% } %>
       
       <% if (error_msg) { %>
-        <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 8px;">
           <%= error_msg %>
-        </div>
       <% } %>
       
 

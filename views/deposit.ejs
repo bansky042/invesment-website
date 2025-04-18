@@ -74,7 +74,7 @@
 <body class="min-h-screen flex flex-col items-center justify-center">
 
   <!-- Navbar Partial -->
-  <%- include("partials/navbar", { walletAddress,coinType }) %>
+  <%- include("partials/navbar") %>
 
   <!-- Deposit Container -->
   <div class="desposit-container bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
@@ -95,12 +95,7 @@
     <% } %>
     
 
-    <!-- Wallet Status -->
-    <% if (walletAddress) { %>
-      <p class="text-center text-green-600 mb-4">Wallet Connected: <%= walletAddress %></p>
-    <% } else { %>
-      <p class="text-center text-red-600 mb-4">Please connect your wallet</p>
-    <% } %>
+    
 
     <!-- Deposit Form -->
     <form action="/deposit" method="POST" enctype="multipart/form-data" class="flex flex-col gap-4">

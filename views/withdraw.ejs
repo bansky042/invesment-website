@@ -40,7 +40,7 @@
 <body class="bg-cover bg-center min-h-screen flex" style="background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url(../images/invest.jpg);">
 
   <!-- Include Navbar -->
-  <%- include('partials/navbar', { walletAddress, coinType }) %>
+  <%- include('partials/navbar') %>
 
   <!-- Main Content -->
   <div class="main-content flex-grow ml-[64px] mt-16 p-6 transition-all duration-300 w-full max-w-lg mx-auto">
@@ -59,7 +59,6 @@
       <% } %>
 
       <div class="mb-6 text-sm">
-        <p><strong>Registered Wallet:</strong> <%= user.wallet_address %></p>
         <p><strong>Available Balance:</strong> $<%= user.profit_balance %></p>
       </div>
 

@@ -9,193 +9,196 @@
  
   <style>
 
-@media only screen and (max-width: 594px) and (max-height: 1200px) {
-  main{
-    max-width: 80% !important;
-  }    
-  
-  body {
-        flex-direction: column;
-        padding: 20px;
-      }
-
-      .container {
-        padding: 20px 10px;
-      }
-
-      h1, h2 {
-        font-size: 1.2rem;
-      }
-
-      th, td {
-        padding: 10px 5px;
-        font-size: 14px;
-      }
-
-      .controls {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .pagination {
-        flex-direction: column;
-        gap: 5px;
-      }
-
+    @media only screen and (max-width: 594px) and (max-height: 1200px) {
+      main{
+        max-width: 80% !important;
+      }    
+      .sidebar.collapsed .menu-icon {
+              display: none;
+           }
       
-    }
-    body {
-      background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
-    background-size: cover; /* Ensures the background covers the entire page */
-    height: auto; /* Ensures the body takes the full height of the viewport */
-    background-repeat: no-repeat;
-    margin: 0; /* Remove default margin */
-    padding: 50px 0; /* Remove default padding */
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .container {
-      background-color: #ffffff;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-      width: 100%;          /* ✅ keep this */
-      max-width: 800px;      /* ✅ optional: tailwind handles it */
-      text-align: center;
-    }
-
-    h1 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    section {
-      margin-top: 30px;
-    }
-
-    h2 {
-      margin-bottom: 10px;
-      color: #444;
-    }
-
-    .filter-select {
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-    }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 12px 10px;
-      text-align: center;
-    }
-
-    th {
-      background-color: #e8efff;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    .status-approved { color: green; font-weight: bold; }
-    .status-pending { color: orange; font-weight: bold; }
-    .status-rejected { color: red; font-weight: bold; }
-
-    .back-link {
-      display: inline-block;
-      margin-top: 30px;
-      text-decoration: none;
-      color: #4a90e2;
-      font-weight: bold;
-    }
-
-    .back-link:hover {
-      text-decoration: underline;
-    }
-
-    .summary {
-      margin-top: 10px;
-      font-weight: bold;
-      color: #333;
-    }
-
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
-
-    .buttons {
-      background-color: #4a90e2;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .buttons:hover {
-      background-color: #3a78c2;
-    }
-
-    .pagination {
-      margin-top: 10px;
-    }
-
-    .pagination button {
-      margin: 0 4px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      cursor: pointer;
-    }
-
-    .pagination button.active {
-      background-color: #4a90e2;
-      color: white;
-    }
-
-    @media screen and (max-width: 600px) {
-      .container {
-        padding: 20px 10px;
-      }
-
-      .controls {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      th, td {
-        padding: 10px 5px;
-        font-size: 14px;
-      }
-    }
-  </style>
+      body {
+            flex-direction: column;
+            padding: 20px;
+          }
+    
+          .container {
+            padding: 20px 10px;
+          }
+    
+          h1, h2 {
+            font-size: 1.2rem;
+          }
+    
+          th, td {
+            padding: 10px 5px;
+            font-size: 14px;
+          }
+    
+          .controls {
+            flex-direction: column;
+            align-items: center;
+          }
+    
+          .pagination {
+            flex-direction: column;
+            gap: 5px;
+          }
+    
+          
+        }
+        body {
+          background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)),url(../images/invest.jpg);
+        background-size: cover; /* Ensures the background covers the entire page */
+        height: auto; /* Ensures the body takes the full height of the viewport */
+        background-repeat: no-repeat;
+        margin: 0; /* Remove default margin */
+        padding: 50px 0; /* Remove default padding */
+          font-family: 'Segoe UI', sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+          padding: 20px;
+        }
+    
+        .container {
+          background-color: #ffffff;
+          padding: 30px 20px;
+          border-radius: 20px;
+          box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+          width: 100%;          /* ✅ keep this */
+          max-width: 800px;      /* ✅ optional: tailwind handles it */
+          text-align: center;
+        }
+    
+        h1 {
+          margin-bottom: 20px;
+          color: #333;
+        }
+    
+        section {
+          margin-top: 30px;
+        }
+    
+        h2 {
+          margin-bottom: 10px;
+          color: #444;
+        }
+    
+        .filter-select {
+          padding: 8px 10px;
+          border-radius: 8px;
+          border: 1px solid #ccc;
+          margin-bottom: 10px;
+        }
+    
+        .table-wrapper {
+          overflow-x: auto;
+        }
+    
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 10px;
+        }
+    
+        th, td {
+          border: 1px solid #ccc;
+          padding: 12px 10px;
+          text-align: center;
+        }
+    
+        th {
+          background-color: #e8efff;
+        }
+    
+        tr:nth-child(even) {
+          background-color: #f9f9f9;
+        }
+    
+        .status-approved { color: green; font-weight: bold; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-rejected { color: red; font-weight: bold; }
+    
+        .back-link {
+          display: inline-block;
+          margin-top: 30px;
+          text-decoration: none;
+          color: #4a90e2;
+          font-weight: bold;
+        }
+    
+        .back-link:hover {
+          text-decoration: underline;
+        }
+    
+        .summary {
+          margin-top: 10px;
+          font-weight: bold;
+          color: #333;
+        }
+    
+        .controls {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          margin-bottom: 10px;
+          gap: 10px;
+        }
+    
+        .buttons {
+          background-color: #4a90e2;
+          color: #fff;
+          border: none;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+    
+        .buttons:hover {
+          background-color: #3a78c2;
+        }
+    
+        .pagination {
+          margin-top: 10px;
+        }
+    
+        .pagination button {
+          margin: 0 4px;
+          padding: 5px 10px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          cursor: pointer;
+        }
+    
+        .pagination button.active {
+          background-color: #4a90e2;
+          color: white;
+        }
+    
+        @media screen and (max-width: 600px) {
+          .container {
+            padding: 20px 10px;
+          }
+    
+          .controls {
+            flex-direction: column;
+            align-items: center;
+          }
+    
+          th, td {
+            padding: 10px 5px;
+            font-size: 14px;
+          }
+        }
+      </style>
 </head>
 <body class="min-h-screen bg-cover bg-no-repeat px-4 py-8"
       style="background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url('../images/invest.jpg');">
 
-      <%- include('partials/navbar.ejs',{walletAddress, coinType}) %>
+      <%- include('partials/navbar.ejs') %>
 
  <main class="w-full max-w-4xl bg-white rounded-2xl shadow-xl px-4 sm:px-6 md:px-10 py-6 md:py-10 mt-10 mx-auto">
   <h1 class="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">Transaction History</h1>
