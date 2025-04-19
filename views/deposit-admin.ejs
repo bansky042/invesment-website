@@ -32,7 +32,7 @@
                 <td class="p-3">$<%= parseFloat(d.amount).toFixed(2) %></td>
                 <td class="p-3">
                   <% if (d.payment_proof) { %>
-                    <a href="/admin/uploads/<%= d.payment_proof %>" target="_blank" class="text-blue-600 hover:underline">View Proof</a>
+                    <a href="<%= d.payment_proof %>" target="_blank" class="text-blue-600 hover:underline">View Proof</a>
                   <% } else { %>
                     <span class="text-gray-400 italic">No Proof</span>
                   <% } %>
