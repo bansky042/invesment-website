@@ -194,13 +194,13 @@ app.get("/withdraw", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
 
   try {
-    // const result = await pool.query(
-    //   "SELECT wallet_address, profit_balance FROM users WHERE id = $1",
-    //   [req.user.id]
-    // );
+    const result = await pool.query(
+      "SELECT wallet_address, profit_balance FROM users WHERE id = $1",
+      [req.user.id]
+    );
 
-    // const user = result.rows[0];
-    // console.log("User:", user); // Debugging log
+    const user = result.rows[0];
+    console.log("User:", user); // Debugging log
     // if (!user.wallet_address) {
     //   return res.send(
     //     `<script>alert("Connect Wallet first!"); window.location.href = "/dashboard";</script>`
