@@ -219,7 +219,7 @@ app.get("/withdraw", async (req, res) => {
     
     // const walletAddress = userWallet.rows[0]?.wallet_address;
    
-    // const withdrawals = withdrawalsResult.rows;
+     const withdrawals = withdrawalsResult.rows;
     // const coinType = userWallet.rows[0]?.coin_type;
 
     res.render("withdraw", {
