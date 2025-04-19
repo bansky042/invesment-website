@@ -198,7 +198,7 @@
 <body class="min-h-screen bg-cover bg-no-repeat px-4 py-8"
       style="background-image: linear-gradient(to right, rgba(26, 0, 142, 0.658), rgba(129, 0, 0, 0.5)), url('../images/invest.jpg');">
 
-      <%- include('partials/navbar.ejs') %>
+      <%- include('partials/navbar', {walletAddress,coinType}) %>
 
  <main class="w-full max-w-4xl bg-white rounded-2xl shadow-xl px-4 sm:px-6 md:px-10 py-6 md:py-10 mt-10 mx-auto">
   <h1 class="text-2xl md:text-3xl font-bold text-center mb-6 text-gray-800">Transaction History</h1>

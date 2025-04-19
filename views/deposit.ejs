@@ -74,7 +74,7 @@
 <body class="min-h-screen flex flex-col items-center justify-center">
 
   <!-- Navbar Partial -->
-  <%- include("partials/navbar") %>
+  <%- include('partials/navbar', {walletAddress,coinType}) %>
 
   <!-- Deposit Container -->
   <div class="desposit-container bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
