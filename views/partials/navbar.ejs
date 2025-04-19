@@ -75,7 +75,23 @@
       </div>
 
       <!-- Bottom Wallet/Settings -->
-     
+      <div class="flex flex-col items-center gap-4 mb-6 px-4" id="walletSection">
+        <% if (!walletAddress && !coinType) { %>
+          
+         <a href="/insertWalletAddress" ><button class="btn btn-primary w-full hidden">Connect Wallet</button>
+         </a>
+        <% } else { %>
+          <div class="flex flex-col gap-1">
+            <p class="text-sm hidden">Wallet: <%= walletAddress %></p>
+            <p class="text-sm hidden">Coin Type: <%= coinType %></p>
+          </div>
+           <form action="/disconnectWallet" method="POST" class="w-full hidden">
+
+            <button type="submit" class="btn btn-danger w-full">Disconnect</button>
+          </form>
+        <% } %>
+        
+      </div>
     </div>
   </div>
 
