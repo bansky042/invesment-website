@@ -546,7 +546,7 @@ app.get("/settings", async (req, res) => {
 
 
 
-app.get("/forgottenpassword", (req, res) => res.render("forgottenPassword.ejs"));
+app.get("/forgottenpassword", (req, res) => res.render("forgottenpassword.ejs"));
 app.get("/forgot-password", (req, res) => res.render("forgot-password.ejs"));
 app.get("/verify-otp", (req, res) => res.render("otp.ejs"));
 app.get("/withdrawals", async (req, res) => {
