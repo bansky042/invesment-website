@@ -547,7 +547,7 @@ app.get("/settings", async (req, res) => {
 
 
 app.get("/forgottenpassword", (req, res) => res.render("forgottenPassword.ejs"));
-app.get("/forgotpassword", (req, res) => res.render("forgotpassword.ejs"));
+app.get("/forgot-password", (req, res) => res.render("forgot-password.ejs"));
 app.get("/verify-otp", (req, res) => res.render("otp.ejs"));
 app.get("/withdrawals", async (req, res) => {
   if (!req.isAuthenticated()) return res.redirect("/login");
@@ -855,8 +855,8 @@ app.post("/verify-otp", async (req, res) => {
   const result = await pool.query("SELECT * FROM otps WHERE email = $1 AND otp = $2", [email, otp]);
   console.log(`Query result for ${email}:`, result.rows); // Additional logging for debugging
   if (result.rows.length > 0) {
-    res.render("forgotpassword.ejs"); // Render the forgotpassword page
-    console.log(`Redirecting to forgotpassword page for ${email}`); // Additional debugging
+    res.render("forgot-password.ejs"); // Render the forgotpassword page
+    console.log(`Redirecting to forgot-password page for ${email}`); // Additional debugging
     await pool.query("DELETE FROM otps WHERE email = $1 AND otp = $2", [email, otp]); // Clear OTP after successful verification
   } else {
     res.status(400).send('Invalid OTP');
