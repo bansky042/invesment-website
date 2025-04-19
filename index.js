@@ -915,7 +915,7 @@ app.post("/deposit", isLoggedIn, depositUpload.single("payment_proof"), async (r
 
   const { amount } = req.body;
   const userId = req.user.id;
-  const paymentProof = req.file ? req.file.path : null;
+  const paymentProof = req.file.path;
 
   if (!amount || !paymentProof) {
     return res.status(400).render("deposit", {
