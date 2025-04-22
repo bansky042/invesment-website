@@ -433,7 +433,7 @@ app.get('/history', async (req, res) => {
 
 
 
-app.get("/", async (req, res) => {
+app.get("/dashboard", async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
 
@@ -545,7 +545,86 @@ app.get("/settings", async (req, res) => {
 });
 
 
+app.get("/", async (req, res) => {
+  try {
+    let profile = null;
+    let username = null;
 
+    if (req.isAuthenticated()) {
+      const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
+      const user = userResult.rows[0];
+      profile = user?.profile_image;
+      username = user?.username;
+    }
+
+    res.render("home", { req, profile, username });
+  } catch (err) {
+    console.error("Error loading home page:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.get("/contact", async (req, res) => {
+  try {
+    let profile = null;
+    let username = null;
+
+    if (req.isAuthenticated()) {
+      const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
+      const user = userResult.rows[0];
+      profile = user?.profile_image;
+      username = user?.username;
+    }
+
+    res.render("contact", { req, profile, username });
+  } catch (err) {
+    console.error("Error loading home page:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.post("/contact", async (req, res) => {
+  const { name, email, message } = req.body;
+
+  if (!name || !email || !message) {
+    return res.status(400).send("All fields are required.");
+  }
+
+  const mailOptions = {
+    from: email,
+    to: adminEmail,
+    subject: `Contact Form Submission from ${name}`,
+    text: message,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending email:", error);
+      return res.status(500).send("Error sending email.");
+    }
+    console.log("Email sent:", info.response);
+    res.redirect("/contact");
+  });
+});
+
+app.get("/about", async (req, res) => {
+  try {
+    let profile = null;
+    let username = null;
+
+    if (req.isAuthenticated()) {
+      const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [req.user.id]);
+      const user = userResult.rows[0];
+      profile = user?.profile_image;
+      username = user?.username;
+    }
+
+    res.render("about", { req, profile, username });
+  } catch (err) {
+    console.error("Error loading home page:", err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 app.get("/forgottenpassword", (req, res) => res.render("forgottenpassword.ejs"));
 app.get("/forgot-password", (req, res) => res.render("forgot-password.ejs"));
 app.get("/verify-otp", (req, res) => res.render("otp.ejs"));
@@ -763,7 +842,7 @@ console.log("Wallet Address:", walletAddress); // Debugging log
       [walletAddress, coinType, userId]
     );
     console.log("Wallet address saved successfully!");
-    res.redirect("/"); // Redirect instead of sending a response
+    res.redirect("/dashboard"); // Redirect instead of sending a response
    
   } catch (err) {
     console.error("Error updating wallet address:", err);
@@ -792,7 +871,7 @@ app.post("/disconnectWallet", async (req, res) => {
     console.log("Wallet disconnected successfully!");
 
     // Redirect to the dashboard
-    res.redirect("/");
+    res.redirect("/dashboard");
   } catch (error) {
     console.error("Error disconnecting wallet:", error);
     res.status(500).send("Error disconnecting wallet.");
@@ -1337,7 +1416,7 @@ app.post("/upload-profile", isLoggedIn, uploadProfile.single("profileImage"), as
     // ✅ Update user's profile image in DB
     await pool.query("UPDATE users SET profile_image = $1 WHERE id = $2", [imageUrl, userId]);
 
-    res.redirect("/");
+    res.redirect("/dashboard");
   } catch (err) {
     console.error("Error uploading profile image:", err);
     res.status(500).send("Failed to upload profile image.");
