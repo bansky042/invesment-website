@@ -1,295 +1,39 @@
-<div style="display: flex; transition: all 0.3s ease;" id="layoutWrapper">
+<!-- Navbar Start -->
+<nav class="navbar navbar-expand-lg bg-white navbar-light sticky-top p-0 px-4 px-lg-5">
+  <a href="/home" class="navbar-brand d-flex align-items-center">
+      <h2 class="m-0" style="color: darkblue;">
+          <img class="img-fluid me-2" src="/images/ban-invest.png" alt="Ban-invest Logo" style="width: 45px;">
+          Ban-invest
+      </h2>
+  </a>
+  <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+      <span class="navbar-toggler-icon"></span>
+  </button>
 
-    <!-- Sidebar -->
-    <div id="sidebar" style="position: fixed; top: 0; left: 0; height: 100vh; width: 80px; background-color: #333; color: white; transition: width 0.3s ease; z-index: 1000;">
-      <div style="display: flex; flex-direction: column; height: 100%; justify-content: space-between;">
-        <!-- Top Section -->
-        <div>
-          <!-- Hamburger / Close Button -->
-          <div style="padding: 16px; display: flex; justify-content: flex-end;">
-            <button id="toggleSidebar" style="background: none; border: none; color: white;">
-              <i class="fas fa-bars" id="hamburgerIcon" style="font-size: 24px;"></i>
-              <i class="fas fa-times hidden" id="closeIcon" style="font-size: 24px;"></i>
-            </button>
-          </div>
-  
-          <!-- Profile Section -->
-          <div style="display: flex; flex-direction: column; align-items: center; margin-top: 16px; margin-bottom: 24px; transition: all 0.3s ease;" id="profileSection">
-            <img src="/images/binance.png" alt="User Avatar"
-                 style="border-radius: 50%; width: 48px; height: 48px; border: 2px solid white; object-cover: cover;" id="profileImage">
-  
-            <h2 id="profileText" style="color: white; font-size: 14px; margin-top: 8px;" class="hidden">Hi, User.</h2>
-          </div>
-  
-          <!-- Menu Items -->
-          <div id="menuItems" style="margin-top: 16px; display: flex; flex-direction: column; gap: 24px; align-items: center;">
-            <a href="#" id="withdrawLink" style="color: white; display: flex; align-items: center; width: 100%; padding: 8px;">
-              <i class="fas fa-hand-holding-usd" style="font-size: 18px; width: 24px; text-align: center;"></i>
-              <span style="margin-left: 8px;" class="hidden">Withdraw</span>
-            </a>
-            <a href="#" id="depositLink" style="color: white; display: flex; align-items: center; width: 100%; padding: 8px;">
-              <i class="fas fa-university" style="font-size: 18px; width: 24px; text-align: center;"></i>
-              <span style="margin-left: 8px;" class="hidden">Deposit</span>
-            </a>
-            <a href="#" id="historyLink" style="color: white; display: flex; align-items: center; width: 100%; padding: 8px;">
-              <i class="fas fa-history" style="font-size: 18px; width: 24px; text-align: center;"></i>
-              <span style="margin-left: 8px;" class="hidden">History</span>
-            </a>
-            <a href="#" id="investLink" style="color: white; display: flex; align-items: center; width: 100%; padding: 8px;">
-              <i class="fas fa-chart-line" style="font-size: 18px; width: 24px; text-align: center;"></i>
-              <span style="margin-left: 8px;" class="hidden">Invest</span>
-            </a>
-            <a href="/logout" style="color: white; display: flex; align-items: center; width: 100%; padding: 8px;">
-              <i class="fas fa-sign-out-alt" style="font-size: 18px; width: 24px; text-align: center;"></i>
-              <span style="margin-left: 8px;" class="hidden">Logout</span>
-            </a>
-          </div>
-        </div>
-  
-        <!-- Bottom Wallet/Settings -->
-        <div id="walletSection" style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 16px;">
-          <a href="/settings" style="color: white; font-size: 24px;">
-            <i class="fas fa-cog"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-  
-    <!-- Main Content -->
-    <div id="mainContent" style="flex: 1; padding: 16px; transition: margin-left 0.3s ease;">
-      <!-- Your page content here -->
-    </div>
-  </div>
-  
-  <script>
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const mainContent = document.getElementById('mainContent');
-    const menuItems = document.querySelectorAll('#menuItems span, #walletSection .hidden');
-    const hamburgerIcon = document.getElementById('hamburgerIcon');
-    const closeIcon = document.getElementById('closeIcon');
-    const profileImage = document.getElementById('profileImage');
-    const profileText = document.getElementById('profileText');
-  
-    let isExpanded = false;
-  
-    // Initially set sidebar state to collapsed
-    sidebar.style.width = "80px";
-    mainContent.style.marginLeft = "0"; // Content remains in place
-    menuItems.forEach(el => el.classList.add('hidden'));
-    hamburgerIcon.classList.remove('hidden');
-    closeIcon.classList.add('hidden');
-    profileImage.style.width = '48px';
-    profileImage.style.height = '48px';
-    profileText.classList.add('hidden');
-  
-    // Toggle Sidebar
-    toggleBtn.addEventListener('click', () => {
-      isExpanded = !isExpanded;
-  
-      if (isExpanded) {
-        // Expand the sidebar
-        sidebar.style.width = "280px"; 
-        mainContent.style.marginLeft = "0"; // No change to the main content
-        menuItems.forEach(el => el.classList.remove('hidden'));
-        hamburgerIcon.classList.add('hidden');
-        closeIcon.classList.remove('hidden');
-        profileImage.style.width = '96px';
-        profileImage.style.height = '96px';
-        profileText.classList.remove('hidden');
-      } else {
-        // Collapse the sidebar
-        sidebar.style.width = "80px"; 
-        mainContent.style.marginLeft = "0"; // Keep the content in place
-        menuItems.forEach(el => el.classList.add('hidden'));
-        hamburgerIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
-        profileImage.style.width = '48px';
-        profileImage.style.height = '48px';
-        profileText.classList.add('hidden');
-      }
-    });
-  </script>
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+      <div class="navbar-nav ms-auto py-4 py-lg-0">
+          <a href="index.html" class="nav-item nav-link active">Home</a>
+          <a href="/about" class="nav-item nav-link">About</a>
+          <a href="/contact" class="nav-item nav-link">Contact</a>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- Wrapper Container -->
-<div id="layoutWrapper" style="position: relative; display: flex;">
-  
-    <!-- Sidebar -->
-    <div id="sidebar" class="sidebar bg-dark text-white fixed top-0 left-0 h-screen z-50 transition-all duration-300" 
-         style="width: 80px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 1000; transition: width 0.3s ease;">
-      <div class="flex flex-col h-full justify-between">
-  
-        <!-- Top Section -->
-        <div>
-          <!-- Hamburger / Close Button -->
-          <div class="flex justify-end p-4">
-            <button id="toggleSidebar" class="text-white focus:outline-none">
-              <i class="fas fa-bars text-2xl" id="hamburgerIcon"></i>
-              <i class="fas fa-times text-2xl hidden" id="closeIcon"></i>
-            </button>
-          </div>
-  
-          <!-- Profile Section -->
-          <div class="flex flex-col items-center justify-center mt-2 mb-6 transition-all duration-300" id="profileSection">
-            <img src="/images/binance.png" alt="User Avatar"
-                 class="rounded-full object-cover border-2 border-white transition-all duration-300"
-                 id="profileImage"
-                 style="width: 48px; height: 48px;">
-  
-            <% if (typeof user !== 'undefined') { %>
-              <h2 id="profileText" class="text-white text-sm mt-2 hidden transition-opacity duration-300">Hi, <%= user.username %>.</h2>
-            <% } else { %>
-              <h2 id="profileText" class="text-white text-sm mt-2 hidden transition-opacity duration-300">Welcome, Guest.</h2>
-            <% } %>
-          </div>
-  
-          <!-- Menu Items -->
-          <div class="mt-4 flex flex-col gap-6 items-center" id="menuItems">
-            <a href="#" id="Dashboard" class="flex items-center gap-3 w-full px-4">
-              <i class="fa-solid fa-table-columns text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">Dashboard</span>
-            </a>
-            
-            <a href="#" id="withdrawLink" class="flex items-center gap-3 w-full px-4">
-              <i class="fas fa-hand-holding-usd text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">Withdraw</span>
-            </a>
-            <a href="#" id="depositLink" class="flex items-center gap-3 w-full px-4">
-              <i class="fas fa-university text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">Deposit</span>
-            </a>
-            <a href="#" id="historyLink" class="flex items-center gap-3 w-full px-4">
-              <i class="fas fa-history text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">History</span>
-            </a>
-            <a href="#" id="investLink" class="flex items-center gap-3 w-full px-4">
-              <i class="fas fa-chart-line text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">Invest</span>
-            </a>
-            <a href="/logout" class="flex items-center gap-3 w-full px-4">
-              <i class="fas fa-sign-out-alt text-xl w-6 text-center"></i>
-              <span class="ml-2 hidden">Logout</span>
-            </a>
-          </div>
-        </div>
-  
-        <!-- Bottom Wallet/Settings -->
-        <div class="flex flex-col items-center gap-4 mb-6 px-4" id="walletSection">
-          <% if (!walletAddress) { %>
-            <button class="btn btn-primary w-full hidden">Connect Wallet</button>
+          <% if (req.isAuthenticated()) { %>
+            <a href="/dashboard" class="nav-item nav-link">Dashboard</a>
+            <a href="/logout" class="nav-item nav-link">Logout</a>
+            <div class="nav-item d-flex align-items-center ms-2">
+              <img 
+                src="<%= profile %>" 
+                alt="Profile" 
+                style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" 
+                class="ms-2"
+              >
+            </div>
           <% } else { %>
-            <p class="text-sm hidden">Wallet: <%= walletAddress %></p>
-            <form action="/disconnectWallet" method="POST" class="w-full hidden">
-              <button type="submit" class="btn btn-danger w-full">Disconnect</button>
-            </form>
+            <a href="/register" class="nav-item nav-link">Register</a>
+            <a href="/login" class="nav-item nav-link">Login</a>
           <% } %>
-          <a href="/settings" class="text-white hover:text-gray-300">
-            <i class="fas fa-cog text-2xl"></i>
-          </a>
-        </div>
+          
       </div>
-    </div>
-  
-    <!-- Main Content -->
-    <div id="mainContent" class="flex-1 p-6 transition-all duration-300" style="transition: margin-left 0.3s ease;">
-      <!-- Your page content here -->
-    </div>
+      
   </div>
-  
-  <script>
-    const sidebar = document.getElementById('sidebar');
-    const toggleBtn = document.getElementById('toggleSidebar');
-    const mainContent = document.getElementById('mainContent');
-    const menuItems = document.querySelectorAll('#menuItems span, #walletSection .hidden');
-    const hamburgerIcon = document.getElementById('hamburgerIcon');
-    const closeIcon = document.getElementById('closeIcon');
-    const profileImage = document.getElementById('profileImage');
-    const profileText = document.getElementById('profileText');
-  
-    let isExpanded = false;
-  
-    toggleBtn.addEventListener('click', () => {
-      isExpanded = !isExpanded;
-  
-      if (isExpanded) {
-        sidebar.style.width = '288px'; // Sidebar expands to 288px
-        menuItems.forEach(el => el.classList.remove('hidden'));
-        hamburgerIcon.classList.add('hidden');
-        closeIcon.classList.remove('hidden');
-  
-        profileImage.style.width = '96px';
-        profileImage.style.height = '96px';
-        profileText.classList.remove('hidden');
-      } else {
-        sidebar.style.width = '80px'; // Sidebar contracts to 80px
-        menuItems.forEach(el => el.classList.add('hidden'));
-        hamburgerIcon.classList.remove('hidden');
-        closeIcon.classList.add('hidden');
-  
-        profileImage.style.width = '48px';
-        profileImage.style.height = '48px';
-        profileText.classList.add('hidden');
-      }
-    });
-  </script>
-  <script>
-    const walletAddress = "<%= walletAddress %>";
-  
-    document.getElementById('Dashboard').onclick = function (e) {
-      e.preventDefault();
-      if (!walletAddress) alert('Please connect your wallet first.');
-      else window.location.href = '/dashboard';
-    };
-  
-    document.getElementById('withdrawLink').onclick = function (e) {
-      e.preventDefault();
-      if (!walletAddress) alert('Please connect your wallet first.');
-      else window.location.href = '/withdraw';
-    };
-  
-    document.getElementById('historyLink').onclick = function (e) {
-      e.preventDefault();
-      if (!walletAddress) alert('Please connect your wallet first.');
-      else window.location.href = '/history';
-    };
-  
-    document.getElementById('depositLink').onclick = function (e) {
-      e.preventDefault();
-      if (!walletAddress) alert('Please connect your wallet first.');
-      else window.location.href = '/deposit';
-    };
-  
-    document.getElementById('investLink').onclick = function (e) {
-      e.preventDefault();
-      if (!walletAddress) alert('Please connect your wallet first.');
-      else window.location.href = '/invest';
-    };
-  
-    function copyReferralLink() {
-      const input = document.getElementById('referralLinkInput');
-      input.select();
-      input.setSelectionRange(0, 99999); // For mobile
-      document.execCommand("copy");
-      alert("Referral link copied to clipboard!");
-    }
-    
-  </script>
-  
+</nav>
+<!-- Navbar End -->
