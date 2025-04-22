@@ -76,6 +76,13 @@
   <!-- Navbar Partial -->
   <%- include('partials/navbar', {walletAddress,coinType}) %>
 
+   <!-- Top Right Icon -->
+<div style="position: absolute; top: 25px; right: 20px; z-index: 1000;">
+  <a href="/" title="Settings" class="text-light fs-4">
+    <i class="fas fa-home text-xl w-6 text-center menu-icon"></i>
+  </a>
+</div>
+
   <!-- Deposit Container -->
   <div class="desposit-container bg-white shadow-lg rounded-2xl p-6 sm:p-10 w-[95%] sm:w-[600px] mx-auto mt-8">
     <h2 class="text-center text-2xl font-bold mb-2">Deposit Funds</h2>
