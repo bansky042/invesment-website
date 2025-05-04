@@ -65,38 +65,50 @@ cron.schedule("0 * * * *", async () => {
   console.log("⏳ Checking for matured investments...");
 
   try {
-    // 1. Get all matured and active investments
     const { rows: maturedInvestments } = await pool.query(
       `SELECT * FROM investments 
        WHERE mature_at <= NOW() AND status = 'active'`
     );
 
     for (const investment of maturedInvestments) {
-      const totalReturn = parseFloat(investment.total_return);
-      const userId = investment.user_id;
+      const client = await pool.connect();
 
-      // 2. Update user's profit balance
-      await pool.query(
-        `UPDATE users 
-         SET profit_balance = profit_balance + $1 
-         WHERE id = $2`,
-        [totalReturn, userId]
-      );
+      try {
+        await client.query('BEGIN');
 
-      // 3. Update investment status
-      await pool.query(
-        `UPDATE investments 
-         SET status = 'claimed' 
-         WHERE id = $1`,
-        [investment.id]
-      );
+        const totalReturn = parseFloat(investment.total_return);
+        const userId = investment.user_id;
 
-      console.log(`💰 Investment ${investment.id} for user ${userId} matured and credited.`);
+        // 1. Update user's profit balance
+        await client.query(
+          `UPDATE users 
+           SET profit_balance = profit_balance + $1 
+           WHERE id = $2`,
+          [totalReturn, userId]
+        );
+
+        // 2. Update investment status
+        await client.query(
+          `UPDATE investments 
+           SET status = 'claimed' 
+           WHERE id = $1`,
+          [investment.id]
+        );
+
+        await client.query('COMMIT');
+        console.log(`💰 Investment ${investment.id} for user ${userId} matured and credited.`);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        console.error(`❌ Failed to process investment ${investment.id}:`, err.message);
+      } finally {
+        client.release();
+      }
     }
   } catch (err) {
-    console.error("❌ Error processing matured investments:", err);
+    console.error("❌ Error fetching matured investments:", err.message);
   }
 });
+
 
 function requireKYCVerified(req, res, next) {
   if (req.user.kyc_status !== 'verified') {
