@@ -913,7 +913,7 @@ app.post("/forgottenpassword", async (req, res) => {
   }
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  await pool.query("INSERT INTO otps (email, otp) VALUES ($1, $2)", [email, otp]); // Store OTP in database
+  await pool.query("INSERT INTO otpss (email, otp) VALUES ($1, $2)", [email, otp]); // Store OTP in database
   console.log(`Stored OTP for ${email}: ${otp}`); // Debugging
   console.log(`OTP stored in database for ${email}`); // Additional debugging
 
@@ -943,12 +943,12 @@ app.post("/verify-otp", async (req, res) => {
 
   console.log(`Submitted OTP: ${otp}`);
 
-  const result = await pool.query("SELECT * FROM otps WHERE email = $1 AND otp = $2", [email, otp]);
+  const result = await pool.query("SELECT * FROM otpss WHERE email = $1 AND otp = $2", [email, otp]);
   console.log(`Query result for ${email}:`, result.rows); // Additional logging for debugging
   if (result.rows.length > 0) {
     res.render("forgot-password.ejs"); // Render the forgotpassword page
     console.log(`Redirecting to forgot-password page for ${email}`); // Additional debugging
-    await pool.query("DELETE FROM otps WHERE email = $1 AND otp = $2", [email, otp]); // Clear OTP after successful verification
+    await pool.query("DELETE FROM otpss WHERE email = $1 AND otp = $2", [email, otp]); // Clear OTP after successful verification
   } else {
     res.status(400).send('Invalid OTP');
   }

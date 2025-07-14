@@ -60,7 +60,7 @@ CREATE TABLE deposits (
 );
 
 -- OTPs table
-CREATE TABLE otps (
+CREATE TABLE otpss (
     id SERIAL PRIMARY KEY,
     email VARCHAR(100),
     otp VARCHAR(6),
