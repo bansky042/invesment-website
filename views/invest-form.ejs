@@ -124,7 +124,7 @@
     <p>Profit: <%= planDetails.percent %>%</p>
 
     <form action="/invest/<%= planName %>" method="POST">
-      <input type="number" name="amount" placeholder="Enter amount" required min="<%= planDetails.min %>" />
+      <input type="number" name="amount" placeholder="Enter amount" required min="<%= planDetails.min %>" max="<%= planDetails.max %>" />
       <button type="submit">Start Investment</button>
     </form>
 

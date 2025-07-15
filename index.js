@@ -1541,7 +1541,7 @@ app.post('/invest/:plan', requireKYCVerified, async (req, res) => {
       planName: plan,
       planDetails: selectedPlan,
       message: `Amount must be between $${selectedPlan.min} and $${selectedPlan.max}`,
-      profitBalance: req.user.deposit_balance
+      depositBalance: req.user.deposit_balance
     });
   }
 
@@ -1557,7 +1557,7 @@ app.post('/invest/:plan', requireKYCVerified, async (req, res) => {
       return res.render('invest-form', {
         planName: plan,
         planDetails: selectedPlan,
-        profitBalance: user.deposit_balance,
+        depositBalance: user.deposit_balance,
         message: 'Insufficient deposit balance.'
       });
     }
