@@ -189,7 +189,7 @@ app.get("/admin/dashboard", isAdmin, (req, res) => {
 
 
 
-app.get("/kyc", (req, res) => {
+app.get("/kyc", isLoggedIn, (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login"); // Redirect if user is not logged in
   }
@@ -346,7 +346,7 @@ app.get('/ref/:referralCode', async (req, res) => {
 
 
 
-app.get('/investment', async (req, res) => {
+app.get('/investment', isLoggedIn, async (req, res) => {
   const user = req.user;
 
   // Fetch user investments (assuming getUserInvestments is correct)
@@ -381,7 +381,7 @@ app.get('/investment', async (req, res) => {
 
 
 
-app.get('/history', async (req, res) => {
+app.get('/history', isLoggedIn, async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
 
@@ -445,7 +445,7 @@ app.get('/history', async (req, res) => {
 
 
 
-app.get("/dashboard", async (req, res) => {
+app.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
     if (!req.isAuthenticated()) return res.redirect("/login");
 
@@ -529,7 +529,7 @@ app.get('/register', async (req, res) => {
 
 
 
-app.get("/settings", async (req, res) => {
+app.get("/settings", isLoggedIn, async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login");
   }
@@ -576,7 +576,7 @@ app.get("/", async (req, res) => {
   }
 });
 
-app.get("/contact", async (req, res) => {
+app.get("/contact",  async (req, res) => {
   try {
     let profile = null;
     let username = null;
@@ -665,7 +665,7 @@ app.get("/withdrawals", async (req, res) => {
   }
 });
 
-app.get("/deposit",  async (req, res) => {
+app.get("/deposit", isLoggedIn,  async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login"); // Redirect to login if not authenticated
   }
@@ -724,7 +724,7 @@ app.get('/dashboard/investments', async (req, res) => {
   }
 });
 
-app.get('/invest', async (req, res) => {
+app.get('/invest',isLoggedIn, async (req, res) => {
   const userId = req.user?.id || 1; // fallback or real user ID
 
   try {
@@ -813,7 +813,7 @@ app.get('/invest/:plan', async (req, res) => {
 //   res.render("insertSeedPhrase.ejs", { userId }); // Pass userId to the view
 // });
 
-app.get("/insertWalletAddress", (req, res) => {
+app.get("/insertWalletAddress", isLoggedIn, (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/login"); // Redirect to login if not authenticated
   }
